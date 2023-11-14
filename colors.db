@@ -1,0 +1,28 @@
+ $TTL    38400
+@       IN      SOA     ruddyserveurtest01.production.test      operateur\.dns.production.test. (
+        2017092602 ;
+        1d ;
+        1h ;
+        4W ;
+        1h ;
+)
+
+        3600    IN      NS      ruddyserveurtest01.production.test.
+        3600    IN      NS      ruddyserveurtest02.production.test.
+
+blueserv17    IN      A       203.0.113.55
+greenserv42   IN      A       198.51.100.128
+redserv23     IN      A       192.0.2.15
+yellowserv08  IN      A       203.0.113.128
+orangeserv01  IN      A       198.51.100.18
+purpleserv12  IN      A       192.0.2.99
+cyanserv07    IN      A       203.0.113.77
+magentaserv04 IN      A       198.51.100.42
+tealserv19    IN      A       192.0.2.60
+pinkserv10    IN      A       203.0.113.92
+yellowserv14  IN      A       198.51.100.71
+orangeserv05  IN      A       192.0.2.33
+greenserv18   IN      A       203.0.113.20
+blackserv09   IN      A       198.51.100.88
+whiteserv16   IN      A       192.0.2.77
+

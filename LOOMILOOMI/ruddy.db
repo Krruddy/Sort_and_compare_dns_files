@@ -1,0 +1,15 @@
+ruddyserv01b IN      A       192.168.10.1
+ruddyserv05b IN      A       192.168.10.5
+ruddyserv02b IN      A       192.168.10.2
+ruddyserv03b IN      A       192.168.10.3
+ruddyserv03b IN      A       192.168.10.3
+ruddyserv03b IN      A       192.168.10.3
+ruddyserv03b IN      A       192.168.10.3
+ruddyserv04b IN      A       192.168.10.4
+ruddyserv05b IN      A       192.168.10.5
+ruddyserv04b IN      A       192.168.10.4
+ruddyserv04b IN      A       192.168.10.4
+ruddyserv04bSPecialserver IN      A       192.168.10.10
+ruddyserv20b IN      A       192.168.10.20
+
+
