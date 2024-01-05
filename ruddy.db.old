@@ -1,0 +1,34 @@
+ $TTL    38400
+@       IN      SOA     ruddyserveurtest01.production.test      operateur\.dns.production.test. (
+        2017092603 ;
+        1d ;
+        1h ;
+        4W ;
+        1h ;
+)
+
+        3600    IN      NS      ruddyserveurtest01.production.test.
+        3600    IN      NS      ruddyserveurtest02.production.test.
+
+
+;This is another comment
+;This is the last comment
+;it should ask for 192.168.10.1 because it's in the loom but not here
+;it should ask for 1111111 and list all of the other servers that resovle to the same ip
+;finally it should ask for 06 because they have the same name server but not the same ip
+ruddyserv02b        IN       A        192.168.10.2
+ruddyserv02b        IN       A        192.168.10.2
+ruddyserv02b        IN       A        192.168.10.2
+ruddyserv03b        IN       A        192.168.10.3
+ruddyserv04b        IN       A        192.168.10.4
+ruddyserv05b        IN       A        192.168.10.5
+ruddyserv02b        IN       A        192.168.10.2
+ruddyserv06b        IN       A        192.168.10.6
+ruddyserv010000000b IN       A        192.168.10.10
+ruddyserv011000000b IN       A        192.168.10.10
+ruddyserv011100000b IN       A        192.168.10.10
+ruddyserv03b        IN       A        192.168.10.3
+ruddyserv03b        IN       A        192.168.10.3
+ruddyserv020000000b IN       A        192.168.10.20
+ruddyserv03b        IN       A        192.168.10.3
+ruddyserv03b        IN       A        192.168.10.3

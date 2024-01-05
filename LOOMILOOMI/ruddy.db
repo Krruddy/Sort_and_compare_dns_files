@@ -9,7 +9,6 @@ ruddyserv04b IN      A       192.168.10.4
 ruddyserv05b IN      A       192.168.10.5
 ruddyserv04b IN      A       192.168.10.4
 ruddyserv04b IN      A       192.168.10.4
-ruddyserv04bSPecialserver IN      A       192.168.10.10
-ruddyserv20b IN      A       192.168.10.20
-
+ruddyserv06b        IN       A        192.168.10.60
+ruddyserv0111111111b IN       A        192.168.10.10
 

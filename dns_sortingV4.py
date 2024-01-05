@@ -6,27 +6,21 @@ import logging
 import errno
 import filecmp  
 
-manual_LOOM_path = "/home/ruddy/github/Sort_and_compare_dns_files/LOOMILOOMI/"
+manual_LOOM_path = "/home/ruddy/Documents/LOOM"
 
 """
-This program increments the number of line 3, removes the duplicates and sorts based on IP addresses the DNS entries. 
-This program does not delete the old file, it renames it with the extension ".old" and creates a new file with the same name as the old one.
-For the program to work, the following conditions must be met:
-- The file must only contain A records (the other records will be ignored).
-- The number that has to be incremented must be in the third line of the file.
-- The only ip addresses present in the standard DNS file must be part of the DNS entries. 
-- The only ip addresses (with the patern "XXX.XXX") present in the reverse DNS must be part of the DNS entries.
-- The name of the reverse DNS file must look like this "XXX.XXX.db" otherwise the program will consider it as a standard DNS file.
-The second part of this program is going to compare the DNS file provided with the DNS file present in the "LOOM" directory.
-For this part of the program to work, the following conditions must be met:
-- nothing different from the conditions above.
-- If possible no comments in the DNS files.
-
-To do:
-- add Docstrings 
-- Add a function that checks if all of the DNS entries are of type A (read the 3rd word of the lines that contain an ip address).
-- if there are duplicates in LOOM warn the user.
-- have an __str__ method for the DNS_file class.
+ This program increments the number of line 3, removes the duplicates and sorts based on IP addresses the DNS entries. 
+ This program does not delete the old file, it renames it with the extension ".old" and creates a new file with the same name as the old one.
+ For the program to work, the following conditions must be met:
+ - The file must only contain A records (the other records will be ignored).
+ - The number that has to be incremented must be in the third line of the file.
+ - The only ip addresses present in the standard DNS file must be part of the DNS entries. 
+ - The only ip addresses (with the patern "XXX.XXX") present in the reverse DNS must be part of the DNS entries.
+ - The name of the reverse DNS file must look like this "XXX.XXX.db" otherwise the program will consider it as a standard DNS file.
+ The second part of this program is going to compare the DNS file provided with the DNS file present in the "LOOM" directory.
+ For this part of the program to work, the following conditions must be met:
+ - nothing different from the conditions above.
+ - If possible no comments in the DNS files.
 """
 
 # raised when the entries in the DNS file and the LOOM file are identical
@@ -162,7 +156,6 @@ class DNS_file:
                 self.sort_standard_DNS_entries(LOOM)
             else:
                 self.sort_reverse_DNS_entries(LOOM)
-        # print the dns entries
 
     # a function named sort_standard_DNS_entries that sorts the standard DNS entries
     def sort_standard_DNS_entries(self, LOOM: bool):
@@ -171,19 +164,10 @@ class DNS_file:
         if not LOOM:
             list_of_DNS_entries = self.list_of_DNS_entries
 
-        Tokenized_DNS_entries = [line.split() for line in list_of_DNS_entries]
+        print(list_of_DNS_entries[0].split()[3].split('.'))
+        sorted_DNS_entries = sorted(list_of_DNS_entries, key=lambda s: list(map(int, s.split()[3].split('.'))))
 
-        list_of_ip = [re.findall(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$", line) for line in list_of_DNS_entries]
-        list_of_ip = [item for sublist in list_of_ip for item in sublist] 
-        sorted_list_of_ip = sorted(list_of_ip, key = ipaddress.IPv4Address)
-        sorted_DNS_entries = []
-        sorted_DNS_entriestmp = []
-        for ip in sorted_list_of_ip:
-            for DNS_entry in Tokenized_DNS_entries:
-                if ip == DNS_entry[3]:
-                    sorted_DNS_entries += [' '.join(DNS_entry) + '\n']
-        
-
+        print(sorted_DNS_entries)
         if LOOM:
             if sorted_DNS_entries == self.LOOM_list_of_DNS_entries:
                 logger.info(f"LOOM was already sorted.")
@@ -205,24 +189,13 @@ class DNS_file:
         list_of_ip = [re.findall(r"\d{1,3}\.\d{1,3}", line) for line in list_of_DNS_entries]
         list_of_ip = [item for sublist in list_of_ip for item in sublist] # list of ip is a list of lists, this line flattens the list
         sorted_list_of_ip = sorted(list_of_ip, key=lambda ip: [int(octet) for octet in ip.split('.')])
-        Tokenized_DNS_entries = [line.split() for line in self.list_of_DNS_entries]
         
         sorted_DNS_entries = []
-        sorted_DNS_entriestmp = []
         for ip in sorted_list_of_ip:
             for DNS_entry in list_of_DNS_entries:
                 if ip in DNS_entry:
                     sorted_DNS_entries += [DNS_entry]
-            for DNS_entry in Tokenized_DNS_entries:
-                if ip == DNS_entry[0]:
-                    sorted_DNS_entriestmp += [' '.join(DNS_entry) + '\n']
-       
-        print(f"sorted_DNS_entries : {sorted_DNS_entries}")
-        print(f"sorted_DNS_entriestmp : {sorted_DNS_entriestmp}")
-
-
-
-
+        
         if LOOM:
             self.LOOM_list_of_DNS_entries = sorted_DNS_entries
         if not LOOM:
@@ -278,11 +251,9 @@ class DNS_file:
      
     # a function named replace_file that takes the name of the file and replaces the old file with the new one
     def replace_file(self):
-        if os.path.exists(f"{file.name}_after_LOOM"):
-            os.
-        else:
-            os.rename(f"{self.name}", f"{self.name}.old")
-            os.rename(f"{self.name}.tmp", f"{self.name}")
+        #os.remove(f"{self.name}")
+        os.rename(f"{self.name}", f"{self.name}.old")
+        os.rename(f"{self.name}.tmp", f"{self.name}")
 
     def setup_LOOM_config(self, LOOM_path = None):
         self.LOOM_file_path = self.__find_LOOM_file_path(self.name, LOOM_path)
@@ -394,9 +365,9 @@ class DNS_file:
                 print(f"\n\n", "-" * 80)
                 print(f"In the LOOM file, the ip address {ip} points to the server {server_name_in_LOOM}. Meanwhile in the DNS file, it points to the server {server_names_of_ip_in_DNS[index]}.")
                 print(f"In the LOOM file, the entry is")
-                print(f"{' '.join(Tokenized_LOOM_DNS_entries[[line[index_of_ip] for line in Tokenized_LOOM_DNS_entries].index(ip)])}\n")
-                print(f"In the DNS file, the entry is")
                 print(f"{' '.join(Tokenized_DNS_entries[[line[index_of_ip] for line in Tokenized_DNS_entries].index(ip)])}\n") # I don't understand this line and I don't want to try to understand it. thx copilot
+                print(f"In the DNS file, the entry is")
+                print(f"{' '.join(Tokenized_LOOM_DNS_entries[[line[index_of_ip] for line in Tokenized_LOOM_DNS_entries].index(ip)])}\n")
                 
                 for attempt in range(3):
                     answer = input(("would you like to change the entry in the DNS file to what is present in the LOOM file ? (y/N) : "))
@@ -464,7 +435,6 @@ def parse_arguments():
         # populates the list of DNS_files
         DNS_files = []
         logger.info(f"Populating the DNS list ...")
-        print(f"-" * 80)
         for index, argument in enumerate(sys.argv):
             if argument == "--LOOM_path" or sys.argv[index - 1] == "--LOOM_path":
                 continue
@@ -479,7 +449,6 @@ logger.info("Starting the program.")
 
 DNS_files, LOOM_path = parse_arguments()
 
-
 if LOOM_path == None:
     LOOM_path = manual_LOOM_path
                         
@@ -492,7 +461,6 @@ for file in DNS_files:
     logger.info(f"sorting the DNS entries for {file.name} ...")
     file.sort_DNS_entries()
     logger.info(f"reconstructing the file {file.name} ...")
-    file.beautify_DNS_entries()
     file.reconstruct_file()
     logger.info(f"replacing the old file with the new one for {file.name} ...")
     #file.replace_file()
@@ -543,6 +511,20 @@ for file in DNS_files:
 
 logger.info("The program has finished running.")
 
+# Open an apache2 web server on port 80
 
 
-
+# Should I add Docstrings ?
+# Add a function that checks if all of the DNS entries are of type A (read the 3rd word of the lines that contain an ip address).
+# Have None instead of having objects with missing attributes.
+# Sort and delete duplicates in the object that represents the LOOM file, but don't write it to the file.
+# if there are duplicates in LOOM warn the user.
+# After having asked for the changes to the user, do a last check between the DNS file and the LOOM file. then if they aren't the same warn the user.
+#have an __str__ method for the DNS_file class.
+# hanfdle comments in the DNS files dictionary key=line, value=comment
+"""
+Crtl + Alt + f send to suspicious (en piece jointe)
+C1 à C3, C4 est confidentiel
+mail C1 à C3
+AGI 
+"""
