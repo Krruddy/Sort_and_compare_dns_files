@@ -315,6 +315,12 @@ class DNS_file:
     def compare_DNS_entries(self):
         if not self.identical_to_LOOM:
             changes_manually_approved = False
+            if self.type == "standard DNS":
+                ip = 3
+                server_name = 0
+            else:
+                ip = 0
+                server_name = 3
             
             Tokenized_DNS_entries = [line.split() for line in self.list_of_DNS_entries]
             Tokenized_LOOM_DNS_entries = [line.split() for line in self.LOOM_list_of_DNS_entries]
@@ -329,7 +335,7 @@ class DNS_file:
                     continue
                 else:
                     for DNS_line in Tokenized_DNS_entries:
-                        if LOOM_line[3] == DNS_line[3]:
+                        if LOOM_line[ip] == DNS_line[ip]:
                             entries_same_ip += [LOOM_line]
                 
             # Entries that have the same name server but not the same ip address (have to ask)
@@ -339,18 +345,18 @@ class DNS_file:
                     continue
                 else:
                     for DNS_line in Tokenized_DNS_entries:
-                        if LOOM_line[0] == DNS_line[0]:
+                        if LOOM_line[server_name] == DNS_line[server_name]:
                             entries_same_server_name += [LOOM_line]
             
             # Ask the user if the DNS entries should be updated to match the LOOM entries.                
             for entry in entries_not_in_DNS:
                 if entry in entries_same_ip:
                     print(f"\n\n", "-" * 80)
-                    print(f"The DNS entry that translates the name server {entry[0]} to the ip address {entry[3]} in the LOOM file, is not present in the local DNS file {self.name}.")
+                    print(f"The DNS entry that translates the name server {entry[server_name]} to the ip address {entry[ip]} in the LOOM file, is not present in the local DNS file {self.name}.")
                     print("But, the following entry/s is/are present in the local DNS file and translate to the same ip address. \n")
                     
                     for line in Tokenized_DNS_entries:
-                        if line[3] == entry[3]:
+                        if line[ip] == entry[ip]:
                             print(f"{' '.join(line)}\n")
                             
                     for attempt in range(3):
@@ -368,11 +374,11 @@ class DNS_file:
                 
                 elif entry in entries_same_server_name:
                     print(f"\n\n", "-" * 80)
-                    print(f"The DNS entry that makes the ip address {entry[3]} point to the server {entry[0]} in the LOOM file, is not present in the local DNS file {self.name}.")
+                    print(f"The DNS entry that makes the ip address {entry[ip]} point to the server {entry[server_name]} in the LOOM file, is not present in the local DNS file {self.name}.")
                     print(f"But, the following entry is present in the local DNS resovles the same server name.\n")
                     
                     for line in Tokenized_DNS_entries:
-                        if line[0] == entry[0]:
+                        if line[server_name] == entry[server_name]:
                             print(f"{' '.join(line)}\n")
                             selected_entry = line
                     
@@ -392,7 +398,7 @@ class DNS_file:
                 
                 elif entry not in entries_same_ip and entry not in entries_same_server_name:
                     print(f"\n\n", "-" * 80)
-                    print(f"The DNS entry that makes the ip address {entry[3]} point to the server {entry[0]} in the LOOM file, is not present in the local DNS file {self.name}.")
+                    print(f"The DNS entry that makes the ip address {entry[ip]} point to the server {entry[server_name]} in the LOOM file, is not present in the local DNS file {self.name}.")
                     print("See the entry below. \n")
                     print(f"{' '.join(entry)}\n")
                     
