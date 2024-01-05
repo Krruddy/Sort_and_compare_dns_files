@@ -522,7 +522,7 @@ for file in DNS_files:
 
 print(f"\n" * 2)
 print(f"#" * 32)
-print(f"# Starting the file comparison #")  
+print(f"# Starting the file comparison #")
 print(f"#" * 32, "\n\n")
 print(f"\n" * 2)
 

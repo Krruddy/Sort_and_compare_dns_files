@@ -1,32 +1,10 @@
 2.10   IN PTR  ruddyserv02b.production.test.
-1.10   IN PTR  ruddyserv01b.production.test.
+1.100  IN PTR  ruddyserv01b.production.test.
 2.10   IN PTR  ruddyserv02b.production.test.
 3.10   IN PTR  ruddyserv03b.production.test.
 2.10   IN PTR  ruddyserv02b.production.test.
 
+7.100  IN PTR  100.production.test.
 
+99.99  IN PTR  99.production.test.
 
-4.10   IN PTR  ruddyserv04b.production.test.
-5.10   IN PTR  ruddyserv05b.production.test.
-6.10   IN PTR  ruddyserv06b.production.test.
-7.100  IN PTR  alainserv99b.production.test.
-7.100  IN PTR  alainserv99b.production.test.
-7.100  IN PTR  alainserv99b.production.test.
-
-5.9    IN PTR  baddaserv01b.production.test.
-6.9    IN PTR  jeromserv05b.production.test.
-11.11  IN PTR  herveserv22b.production.test.
-8.56   IN PTR  lydiaserv49b.production.test.
-9.5    IN PTR  gauthserv80b.production.test.
-7.100  IN PTR  alainserv99b.production.test.
-8.89   IN PTR  chrisserv78b.production.test.
-11.11  IN PTR  herveserv22b.production.test.
-11.11  IN PTR  herveserv22b.production.test.
-11.11  IN PTR  herveserv22b.production.test.
-11.11  IN PTR  herveserv22b.production.test.
-11.11  IN PTR  herveserv22b.production.test.
-7.100  IN PTR  alainserv99b.production.test.
-199.199  IN PTR  Special.Server
-255.255 IN PTR Very.Special.com
-
-10.5    IN       PTR        Void.server.com
