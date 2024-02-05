@@ -65,6 +65,7 @@ class Record:
         self.TTL = TTL
         self.class_ = class_
         self.type_ = type_
+        self.comment = comment
         
     def show(self):
         print(f"TTL : {self.TTL}")
@@ -216,13 +217,15 @@ class DNS_file:
     def set_list_of_standard_DNS_records(self, file_content: list):
         
         for line in file_content:
+            # Empty lines
             if len(line.split()) > 0:
+                # Comments
                 if line.strip()[0] != ";":
                     if self.find_ip_in_line(line) != None: # A, AAAA, or PTR record
                         print(f"a comment is being added for line {line}")
                         if line.split()[2] == "A":
                             current_record = A_record(server_name = line.split()[0], class_ = line.split()[1], type_ = line.split()[2], target = line.split()[3])
-                            print(f"lengt of line is {len(line.split())}")
+                            print(f"length of line is {len(line.split())}")
                             if len(line.split()) > 4:
                                 if ";" in line.split()[4]:
                                     for index, word in enumerate(line.split()):
