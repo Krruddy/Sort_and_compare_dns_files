@@ -161,30 +161,66 @@ class DNS_records:
             print(f"Number of records of type {record_type} : {len(self.records[record_type])}")
                 
     def beautify (self):
+                
         for record_type in self.records:
             if len(self.records[record_type]) > 0:
-                longest_element = max([len(record.server_name) for record in self.records[record_type]])
-                for record in self.records[record_type]:
-                    added_spaces = longest_element - len(record.server_name)+1
-                    record.server_name += " " * added_spaces
-                    record.class_ += " " * 6
-                    record.type_ += " " * 7 
- 
+
+                if not self.is_reverse:
+                    longest_element = max([len(record.server_name) for record in self.records[record_type]])
+                    for record in self.records[record_type]:
+                        added_spaces = longest_element - len(record.server_name)+1
+                        record.server_name += " " * added_spaces
+                        record.class_ += " " * 6
+                        record.type_ += " " * 7 
+                        
+                if self.is_reverse:
+                    longest_element = max([len(record.ip) for record in self.records[record_type]])
+                    for record in self.records[record_type]:
+                        added_spaces = longest_element - len(record.ip)+1
+                        record.ip += " " * added_spaces
+                        record.class_ += " " * 6
+                        record.type_ += " " * 7
+    
     def remove_duplicates(self):
+        if not self.is_reverse:
+            self.remove_standard_duplicates()
+        else:
+            self.remove_reverse_duplicates() 
+        
+    def remove_standard_duplicates(self):
         for record_type in self.records:
-            
             seen = set()
             self.records[record_type] = [x for x in self.records[record_type] if not (x.server_name in seen or seen.add(x.server_name))]
+        
+    def remove_reverse_duplicates(self):
+        for record_type in self.records:
+            seen = set()
+            self.records[record_type] = [x for x in self.records[record_type] if not (x.ip in seen or seen.add(x.ip))]
  
-    def sort(self, by: str = "server_name"):
+    def sort(self):
+        if not self.is_reverse:
+            self.sort_standard()
+        else:
+            self.sort_reverse()
+            
+    def sort_standard(self, by: str = "server_name"):
         for record_type in self.records:
             self.records[record_type].sort(key=lambda x: getattr(x, by))
-            
+    
+    def sort_reverse(self, by: str = "ip"):
+        for record_type in self.records:
+            self.records[record_type].sort(key=lambda x: list(map(int, getattr(x, by).split('.'))))   
+             
     def output_lines(self):
         lines = []
         for record_type in self.records:
             for record in self.records[record_type]:
-                lines += [record.server_name + record.class_ + record.type_ + record.target + "\n"]
+                if record_type == "A":
+                    lines += [record.server_name + record.class_ + record.type_ + record.target + "\n"]
+                if record_type == "CNAME":
+                    lines += [record.domain_name + record.class_ + record.type_ + record.target + "\n"]
+                if record_type == "PTR":
+                    lines += [record.ip + record.class_ + record.type_ + record.domain_name + "\n"]
         return lines
             
 class Comments:
@@ -247,21 +283,15 @@ class DNS_file:
         else:
             return int(incre_value[0])
 
-    # a function named __set_list_of_DNS_records that takes self, the file content and returns a list of DNS entries
+    # a function named __set_list_of_DNS_records that takes self, the file content and returns a list of DNS entries    
     def __set_list_of_DNS_records(self, file_content: list):
-        if self.is_reverse == False:
-            return self.set_list_of_standard_DNS_records(file_content)
-        else:
-            return self.set_list_of_reverse_DNS_records(file_content)
-    
-    def set_list_of_standard_DNS_records(self, file_content: list):
         
         for line in file_content:
             # Empty lines
             if len(line.split()) > 0:
                 # Comments
                 if line.strip()[0] != ";":
-                    if self.find_ip_in_line(line) != None: # A, AAAA, or PTR record
+                    if self.find_ip_in_line(line) != None: # A, AAAA
                         print(f"a comment is being added for line {line}")
                         if line.split()[2] == "A":
                             
@@ -272,11 +302,12 @@ class DNS_file:
                             
                         elif line.split()[2] == "AAAA":
                             pass
-                        elif line.split()[2] == "PTR":
-                            
+                    elif self.find_reverse_ip_in_line(line) != None: # PTR
+                        if line.split()[2] == "PTR":
+                            print(f"PTR record {line}")
                             current_record = PTR_record(ip = line.split()[0], class_ = line.split()[1], type_ = line.split()[2], domain_name = line.split()[3])
                             self.records.add_record(current_record)
-                            
+                        
                     elif len(line.split()) > 4: # Other records
                         if line.split()[2] == "CNAME":
                             
@@ -288,10 +319,6 @@ class DNS_file:
                     else:
                         pass #raise UnkownRecordType
                                                             
-    def set_list_of_reverse_DNS_records(self, file_content: list):
-        list_of_DNS_records = [line for line in file_content if self.find_reverse_ip_in_line(line) != None]        
-        return list_of_DNS_records
-
     # a function named find_ip_in_line that determines if there is an ip address in the line and returns the match
     def find_ip_in_line(self, line: str, ip_pattern = r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?=[ ;]|$)"):
         match = re.search(ip_pattern, line)
@@ -359,25 +386,9 @@ class DNS_file:
     def sort_reverse_DNS_entries(self, LOOM: bool):
         if LOOM:
             list_of_DNS_records = self.LOOM_list_of_DNS_records
-        if not LOOM:
-            list_of_DNS_records = self.list_of_DNS_records
-        
-        sorted_DNS_entries = sorted(list_of_DNS_records, key=lambda s: list(map(int, s.split()[0].split('.'))))
-
-        #list_of_ip = [re.findall(r"\d{1,3}\.\d{1,3}", line) for line in list_of_DNS_records]
-        #list_of_ip = [item for sublist in list_of_ip for item in sublist] # list of ip is a list of lists, this line flattens the list
-        #sorted_list_of_ip = sorted(list_of_ip, key=lambda ip: [int(octet) for octet in ip.split('.')])
-        
-        #sorted_DNS_entries = []
-        #for ip in sorted_list_of_ip:
-        #    for DNS_entry in list_of_DNS_records:
-        #        if ip in DNS_entry:
-        #            sorted_DNS_entries += [DNS_entry]
-        
-        if LOOM:
             self.LOOM_list_of_DNS_records = sorted_DNS_entries
         if not LOOM:
-            self.list_of_DNS_records = sorted_DNS_entries
+            self.records.sort()
 
     # a function named reconstruct_file that reconstructs the file with the new incrementation value and the sorted DNS entries
     def reconstruct_file(self, LOOM = False):
@@ -743,3 +754,4 @@ logger.info("The program has finished running.")
 # hanfdle comments in the DNS files dictionary key=line, value=comment
 # In the DNS files, there are duplicate entries that don't have the same tabulation. So instead of calling it beautify, you should call it normalize. Or changing the way the entries are stored. make it so that they are stored as disctionaries or pairs that way you can very easily sort and remove duplicates
 # handle entries that have the same server name but not the same ip address
+# add a type that is a list of DNS RECORDS so that they sort themselves and remove duplicates based on theire type.
