@@ -1,6 +1,6 @@
  $TTL    38400
 @       IN      SOA     ruddyserveurtest01.production.test      operateur\.dns.production.test. (
-        2017092612 ;
+        2017092625 ;
         1d ;
         1h ;
         4W ;
@@ -17,4 +17,7 @@
 ;finally it should ask for 06 because they have the same name server but not the same ip
 
 
-ruddyserv02b IN      A       192.168.10.2
+
+
+ruddyserv01b IN      A       192.168.10.1
+ruddyserv02b IN      A       192.168.10.200

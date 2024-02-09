@@ -1,3 +1,3 @@
 ruddyserv01b IN      A       192.168.10.1
-ruddyserv02b        IN       A        192.168.10.200
+ruddyserv02b IN      A       192.168.10.2
 

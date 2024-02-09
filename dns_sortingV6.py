@@ -515,8 +515,6 @@ class DNS_file:
         # Open the file
         final_DNS_file = self.__create_tmp_file(f"{self.name}")
         
-        print(f"#test#")
-        print(self.records.output_lines())
         
         # Add the lines to the file that aren't the DNS entries
         for index, line in enumerate(self.file_content):
@@ -693,13 +691,7 @@ class DNS_file:
     
     def compare_PTR_to_LOOM(self, Loom_file: LOOM_file):
         print("PTR")
-                   
-    def remove_entry(self, entry: list):
-        for index, line in enumerate(self.list_of_DNS_records):
-            if line.split() == entry:
-                self.list_of_DNS_records.pop(index)
-                return 0
-                                                  
+                                                                     
     def beautify_DNS_entries(self):
         self.records.beautify()
     
@@ -815,6 +807,9 @@ for file in DNS_files:
     print(f"Comparing the DNS file {file.name} with the LOOM file {file.LOOM_file.name} ...")
     file.compare_to_LOOM(file.LOOM_file)
     print(f"-" * 80)
+    file.beautify_DNS_entries()
+    file.reconstruct_file()
+    file.replace_file()
 
 #LOOM_files[0].show_records()
 
