@@ -1,6 +1,6 @@
  $TTL    38400
 @       IN      SOA     ruddyserveurtest01.production.test      operateur\.dns.production.test. (
-2022092899 ;
+2022092901 ;
         1d ;
         1h ;
         4W ;
@@ -10,30 +10,17 @@
         3600    IN      NS      ruddyserveurtest01.production.test.
         3600    IN      NS      ruddyserveurtest02.production.test.
 
-1.10   IN   PTR   ruddyserv01b.production.test.
-2.10   IN   PTR   ruddyserv02b.production.test.
-3.10   IN   PTR   ruddyserv03b.production.test.
-7.100  IN   PTR   alainserv99b.production.test.
-10.10  IN   PTR   example1.production.test.
-10.20  IN   PTR   example2.production.test.
-10.30  IN   PTR   example3.production.test.
-10.40  IN   PTR   example4.production.test.
-7.100  IN   PTR   alainserv99b.production.test.
-3.10   IN   PTR   ruddyserv03b.production.test.
-1.10   IN   PTR   ruddyserv01b.production.test.
-10.20  IN   PTR   example2.production.test.
-10.50  IN   PTR   example5.production.test.
-3.10   IN   PTR   ruddyserv03b.production.test.
-10.10  IN   PTR   example1.production.test.
-10.40  IN   PTR   example4.production.test.
-10.60  IN   PTR   example6.production.test.
-3.10   IN   PTR   ruddyserv03b.production.test.
-7.100  IN   PTR   alainserv99b.production.test.
-10.10  IN   PTR   example1.production.test.
-10.20  IN   PTR   example2.production.test.
-10.70  IN   PTR   example7.production.test.
-10.10  IN   PTR   example1.production.test.
-10.80  IN   PTR   example8.production.test.
-10.20  IN   PTR   example2.production.test.
 
 
+1.10  IN      PTR       ruddyserv01b.production.test.
+2.10  IN      PTR       ruddyserv02b.production.test.
+3.10  IN      PTR       ruddyserv03b.production.test.
+7.100 IN      PTR       alainserv99b.production.test.
+10.10 IN      PTR       example1.production.test.
+10.20 IN      PTR       example2.production.test.
+10.30 IN      PTR       example3.production.test.
+10.40 IN      PTR       example4.production.test.
+10.50 IN      PTR       example5.production.test.
+10.60 IN      PTR       example6.production.test.
+10.70 IN      PTR       example7.production.test.
+10.80 IN      PTR       example8.production.test.
