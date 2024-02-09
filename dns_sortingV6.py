@@ -161,7 +161,12 @@ class DNS_records:
             print(f"Number of records of type {record_type} : {len(self.records[record_type])}")
                 
     def beautify (self):
-                
+        if not self.is_reverse:
+            self.beautify_standard()
+        else:
+            self.beautify_reverse()                
+    
+    def beautify_standard(self):
         for record_type in self.records:
             if len(self.records[record_type]) > 0:
 
@@ -172,7 +177,11 @@ class DNS_records:
                         record.server_name += " " * added_spaces
                         record.class_ += " " * 6
                         record.type_ += " " * 7 
-                        
+
+    def beautify_reverse(self):
+        for record_type in self.records:
+            if len(self.records[record_type]) > 0:
+
                 if self.is_reverse:
                     longest_element = max([len(record.ip) for record in self.records[record_type]])
                     for record in self.records[record_type]:
@@ -235,7 +244,76 @@ class Comments:
             print(comment)
             print("\n")
             
+class LOOM_file:
+    
+    def __init__(self, path: str, data: dict):
+        if os.path.isfile(path+"/"+data["name"]):
+            
+            self.path = path
+            self.name = data["name"]
+            self.is_reverse = data["is_reverse"]
+            self.file_content = self.__set_file_content(self.name, self.path)
+            self.records = DNS_records()
+            self.list_of_DNS_records = self.__set_list_of_DNS_records(self.file_content)
+            
+        else:
+            raise FileNotFoundError
         
+        
+    def __set_file_content(self, name: str, path: str):
+        file = open(f"{path}/{name}", "r")
+        lines = file.readlines()
+        file.close()
+        return lines
+    
+    def __set_list_of_DNS_records(self, file_content: list):
+        for line in file_content:
+            # Empty lines
+            if len(line.split()) > 0:
+                # Comments
+                if line.strip()[0] != ";":
+                    if self.find_ip_in_line(line) != None: # A, AAAA
+                        print(f"a comment is being added for line {line}")
+                        if line.split()[2] == "A":
+                            
+                            current_record = A_record(server_name = line.split()[0], class_ = line.split()[1], type_ = line.split()[2], target = line.split()[3])
+                            print(f"length of line is {len(line.split())}")
+                            
+                            self.records.add_record(current_record)
+                            
+                        elif line.split()[2] == "AAAA":
+                            pass
+                    elif self.find_reverse_ip_in_line(line) != None: # PTR
+                        if line.split()[2] == "PTR":
+                            print(f"PTR record {line}")
+                            current_record = PTR_record(ip = line.split()[0], class_ = line.split()[1], type_ = line.split()[2], domain_name = line.split()[3])
+                            self.records.add_record(current_record)
+                        
+                    elif len(line.split()) > 4: # Other records
+                        if line.split()[2] == "CNAME":
+                            
+                            current_record = CNAME_record(domain_name = line.split()[0], class_ = line.split()[1], type_ = line.split()[2], target = line.split()[3])
+                            self.records.add_record(current_record)
+
+                        elif line.split()[2] == "MX":
+                            pass
+                    else:
+                        pass #raise UnkownRecordType
+
+    def find_ip_in_line(self, line: str, ip_pattern = r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?=[ ;]|$)"):
+        match = re.search(ip_pattern, line)
+        return match
+    
+    # a function named find_reverse_ip_in_line that determines if there is a reverse ip address in the line and returns the match
+    def find_reverse_ip_in_line(self, line: str, ip_pattern = r"\d{1,3}\.\d{1,3}"):
+        match = re.search(ip_pattern, line)
+        return match
+
+
+    def show_records(self):
+        self.records.show_records()
+    
+    
 # a class named DNS_file that takes the name of the file.
 class DNS_file:
     # The constructor takes the name of the file and sets the type of file, the file content, the space before the incrementation value, the incrementation value and the list of DNS entries.
@@ -337,69 +415,19 @@ class DNS_file:
         self.incre_value += 1
     
     # a function named delete_duplicate_entries that deletes the duplicate entries
-    def delete_duplicate_entries(self, LOOM = False):
-        if LOOM and not self.identical_to_LOOM:
-            if self.LOOM_list_of_DNS_records == list(set(self.LOOM_list_of_DNS_records)):
-                logger.info(f"LOOM does not contain any duplicate entries.")
-            else:
-                logger.warning(f"The LOOM file of {self.name} contains duplicate entries.")
-                logger.warning(f"Deleting locally the duplicate entries (the actual LOOM file will remain unchanged) ...")
-                self.LOOM_list_of_DNS_records = list(set(self.LOOM_list_of_DNS_records))
-        if not LOOM:
-            print(self.records.show_number_of_records())
-            self.records.remove_duplicates()
-            print("#"*300)
-            print(self.records.show_number_of_records())
+    def delete_duplicate_entries(self):
+        self.records.remove_duplicates()
 
-    def sort_DNS_entries(self, LOOM = False):
-
-        if LOOM and not self.identical_to_LOOM:
-            if self.is_reverse == False:
-                self.sort_standard_DNS_entries(LOOM)
-            else:
-                self.sort_reverse_DNS_entries(LOOM)
-        if not LOOM:
-            if self.is_reverse == False:
-                self.sort_standard_DNS_entries(LOOM)
-            else:
-                self.sort_reverse_DNS_entries(LOOM)
-
-    # a function named sort_standard_DNS_entries that sorts the standard DNS entries
-    def sort_standard_DNS_entries(self, LOOM: bool):
-        if LOOM:
-            list_of_DNS_records = self.LOOM_list_of_DNS_records
-        
-            sorted_DNS_entries = sorted(list_of_DNS_records, key=lambda s: list(map(int, s.split()[3].split('.'))))
-
-            #print(sorted_DNS_entries)
-            if LOOM:
-                if sorted_DNS_entries == self.LOOM_list_of_DNS_records:
-                    logger.info(f"LOOM was already sorted.")
-                else:
-                    logger.warning(f"LOOM was not sorted, but now locally is (the actual LOOM file will remain unchanged).")
-                    self.LOOM_list_of_DNS_records = sorted_DNS_entries
-                    
-        if not LOOM:
-            self.records.sort()
-
-    # a function named sort_reverse_DNS_entries that sorts the reverse DNS entries   
-    def sort_reverse_DNS_entries(self, LOOM: bool):
-        if LOOM:
-            list_of_DNS_records = self.LOOM_list_of_DNS_records
-            self.LOOM_list_of_DNS_records = sorted_DNS_entries
-        if not LOOM:
-            self.records.sort()
+    def sort_DNS_entries(self):
+        self.records.sort()        
 
     # a function named reconstruct_file that reconstructs the file with the new incrementation value and the sorted DNS entries
-    def reconstruct_file(self, LOOM = False):
+    def reconstruct_file(self):
         # Reconstructs the 2nd line
         reconstructed_line = self.__reconstruct_line(self.space_before_incre_value, self.incre_value)
         
         # Open the file
-        if LOOM:
-            final_DNS_file = self.__create_tmp_file(f"{self.name}._after_LOOM")
-        if not LOOM:
-            final_DNS_file = self.__create_tmp_file(f"{self.name}")
+        final_DNS_file = self.__create_tmp_file(f"{self.name}")
         
         print(f"#test#")
         print(self.records.output_lines())
@@ -454,54 +482,6 @@ class DNS_file:
             os.rename(f"{self.name}._after_LOOM.tmp", f"{self.name}")
             print('')
 
-    def setup_LOOM_config(self, LOOM_path = None):
-        self.LOOM_file_path = self.__find_LOOM_file_path(self.name, LOOM_path)
-        self.LOOM_file_exists = self.__LOOM_file_exists_and_set(self.LOOM_file_path)
-        
-        if self.LOOM_file_exists: 
-            if not self.fast_comp(self.LOOM_file_path):
-                self.identical_to_LOOM = False    
-                self.LOOM_file_content = self.set_LOOM_file_content(self.LOOM_file_path)
-                self.LOOM_list_of_DNS_records = self.__set_list_of_DNS_records(self.LOOM_file_content)
-            else:
-                self.identical_to_LOOM = True
-                self.LOOM_file_content = None
-                self.LOOM_list_of_DNS_records = None
-                logger.info(f"The file {self.name} is the same as the LOOM file {self.LOOM_file_path}.")
-
-                
-        else:
-            raise FileNotFoundError
-
-    def __find_LOOM_file_path(self, name: str, LOOM_path):
-            return f"{LOOM_path}/{name}"
-
-    def __LOOM_file_exists_and_set(self, LOOM_file_path: str):
-        if os.path.isfile(LOOM_file_path) == False:
-            logger.warning(f"The LOOM file {LOOM_file_path} does not exist.")
-            logger.warning(f"The comparison between {self.name} and {LOOM_file_path} will not take place.")
-            return False
-        else:
-            return os.path.isfile(LOOM_file_path)
-
-    # a function named set_LOOM_file_content that takes the path to the LOOM file and returns wether or not the DNS file and the LOOM file are the same.
-    def fast_comp(self, LOOM_file_path: str):
-        return filecmp.cmp(self.name, LOOM_file_path, shallow=False)
-    
-    def set_LOOM_file_content(self, LOOM_file_path: str):
-        if os.path.isfile(LOOM_file_path):
-            file = open(f"{LOOM_file_path}", "r")
-            lines = file.readlines()
-            file.close()
-            return lines
-        else:
-            logger.warning(f"The LOOM file {LOOM_file_path} does not exist.")
-            return None
-    
-    def fast_comp(self, LOOM_path: str):
-        if LOOM_path == None:
-            return False
-   
     def compare_DNS_entries(self):
         if not self.identical_to_LOOM:
             changes_manually_approved = False
@@ -614,27 +594,12 @@ class DNS_file:
             if line.split() == entry:
                 self.list_of_DNS_records.pop(index)
                 return 0
-            
-    def add_entry(self, entry: list):
-        self.list_of_DNS_records += [' '.join(entry) + '\n']
- 
-    #def remove_entry(self, server_name: str):
-    #    for index, line in enumerate(self.list_of_DNS_records):
-    #        if line.split()[0] == server_name:
-    #            self.list_of_DNS_records.pop(index)
-    #            return 0
-                         
-    def establish_LOOM_differences(self):
-        self.LOOM_differences = {
-                    "incrementation value": False,
-                    "sorted": False,
-                    "duplicate entries": False,
-                    "DNS entries": False
-                }
-        
+                                            
     def beautify_DNS_entries(self):
         self.records.beautify()
-        
+
+    def feed_data_to_LOOM(self):
+        return { "name" : self.name, "is_reverse" : self.is_reverse}
         
 def parse_arguments():
     logger.info("Parsing the arguments ...")
@@ -701,19 +666,33 @@ for file in DNS_files:
 ###################################
 # The file comparison starts here #
 ###################################
-if False:
-    print(f"\n" * 2)
-    print(f"#" * 32)
-    print(f"# Starting the file comparison #")
-    print(f"#" * 32, "\n\n")
-    print(f"\n" * 2)
+print(f"\n" * 2)
+print(f"#" * 32)
+print(f"# Starting the file comparison #")
+print(f"#" * 32, "\n\n")
+print(f"\n" * 2)
 
+if os.path.isdir(f"{LOOM_path}") == False:
+    logger.error(f"The path {LOOM_path} is not valid.")
+    logger.error(f"The comparison between the DNS files and the LOOM files cannot be done.")
+    logger.error(f"Exiting the program.")
+    sys.exit(errno.ENOENT)
+
+LOOM_files = []
+# instantiate the LOOM files
+for file in DNS_files:
+    try:
+        LOOM_files += [LOOM_file(LOOM_path, file.feed_data_to_LOOM())]
+        
+        
+    except FileNotFoundError:
+        print(f"-" * 80)
+        continue
+
+LOOM_files[0].show_records()
+
+if False:
     #define the path to the LOOM directory and check if it exists
-    if os.path.isdir(f"{LOOM_path}") == False:
-        logger.error(f"The path {LOOM_path} is not valid.")
-        logger.error(f"The comparison between the DNS files and the LOOM files cannot be done.")
-        logger.error(f"Exiting the program.")
-        sys.exit(errno.ENOENT)
 
     for file in DNS_files:
         try:
