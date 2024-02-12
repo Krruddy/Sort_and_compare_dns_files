@@ -1,10 +1,8 @@
 import re
-import ipaddress
 import os
 import sys
 import logging
 import errno
-import filecmp  
 
 manual_LOOM_path = "/home/ruddy/github/Sort_and_compare_dns_files/LOOM"
 
