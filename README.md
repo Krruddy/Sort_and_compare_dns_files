@@ -7,6 +7,9 @@ This project contains a Python script (`dns_sorting.py`) that compares DNS files
 ```bash
 .vscode/ settings.json LOOM/ README.md dns_sorting.py notes.md save/ 10.10.db.save ruddy.db.save
 ```
+## Installation
+
+Before running the script, make sure you have Python installed on your machine. If your project has other dependencies, list them here along with instructions on how to install them.
 
 ## Features
 
@@ -30,8 +33,4 @@ Replace <filename> with the actual filename you want to use.
 Contributions are welcome. Please fork the repository and create a pull request with your changes.
 
 ## License
-This project is licensed under the terms of the MIT license.
-
-```
-Please replace <filename> with the actual filename you want to use, and update the "License" section if you're using a different license.
-```
+This project is not licensed licensed.
