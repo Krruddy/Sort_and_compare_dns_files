@@ -1,6 +1,6 @@
  $TTL    38400
 @       IN      SOA     ruddyserveurtest01.production.test      operateur\.dns.production.test. (
-        2017092624 ;
+        2017092636 ;
         1d ;
         1h ;
         4W ;
@@ -19,7 +19,6 @@
 
 
 
+
 ruddyserv01b IN      A       192.168.10.1
-ruddyserv02b IN      A       192.168.10.200
-ruddyserv02b IN      A       192.168.10.201
-ruddyserv02b IN      A       192.168.10.202
+ruddyserv02b IN      A       192.168.10.20

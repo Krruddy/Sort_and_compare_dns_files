@@ -324,8 +324,6 @@ class Comments:
             print(comment)
             print("\n")
         
-
-            
 class LOOM_file:
     
     def __init__(self, path: str, DNS_file = None):
@@ -635,8 +633,9 @@ class DNS_file:
         for record in records_not_in_DNS:
             print("\n", "-" * 80, "\n")
             if record in records_same_ip:
+                print(f"file: {self.name}\n")
                 print(f"The DNS entry that translates the ip address {record.ip} to the domain name {record.domain_name} in the LOOM file, is not present in the local DNS file {self.name}.")
-                print("But, the following entry/s is/are present in the local DNS file and translate to the same domain name. \n")
+                print("But, the following entry/s is/are present in the local DNS file and translate the same ip address\n")
                 
                 for line in self.records.records["PTR"]:
                     if line.ip == record.ip:
@@ -658,6 +657,7 @@ class DNS_file:
                         print(f"invalide input, please try again.")
                         
             elif record in records_same_server_name:
+                print(f"file: {self.name}\n")
                 print(f"The DNS entry that translates the ip address {record.ip} to the domain name {record.domain_name} in the LOOM file, is not present in the local DNS file {self.name}.")
                 print(f"But, the following entr/s is/are present in the local DNS resovles the same server name.\n")
                 
@@ -679,6 +679,7 @@ class DNS_file:
                         break
         
             elif record not in records_same_ip and record not in records_same_server_name:
+                print(f"file: {self.name}\n")
                 print(f"The DNS entry that translates the ip address {record.ip} to the domain name {record.domain_name} in the LOOM file, is not present in the local DNS file {self.name}.")
                 print("See the entry below. \n")
                 record.show()
@@ -697,9 +698,7 @@ class DNS_file:
                         
         print("\n", "-" * 80, "\n")
         # Show the the records of the DNS file
-        self.records.show_records()
-        
-        
+        self.records.show_records()       
     
     def compare_A_to_LOOM(self, Loom_file: LOOM_file):
         
@@ -751,6 +750,7 @@ class DNS_file:
         for record in records_not_in_DNS:
             print("\n", "-" * 80, "\n")
             if record in records_same_ip:
+                print(f"file: {self.name}\n")
                 print(f"The DNS entry that translates the name server {record.server_name} to the ip address {record.target} in the LOOM file, is not present in the local DNS file {self.name}.")
                 print("But, the following entry/s is/are present in the local DNS file and translate to the same ip address. \n")
                 
@@ -774,6 +774,7 @@ class DNS_file:
                         print(f"invalide input, please try again.")
                         
             elif record in records_same_server_name:
+                print(f"file: {self.name}\n")
                 print(f"The DNS entry that makes the ip address {record.target} point to the server {record.server_name} in the LOOM file, is not present in the local DNS file {self.name}.")
                 print(f"But, the following entr/s is/are present in the local DNS resovles the same server name.\n")
                 
@@ -797,6 +798,7 @@ class DNS_file:
                         print(f"invalide input, please try again.")
                         
             elif record not in records_same_ip and record not in records_same_server_name:
+                print(f"file: {self.name}\n")
                 print(f"The DNS entry that makes the ip address {record.target} point to the server {record.server_name} in the LOOM file, is not present in the local DNS file {self.name}.")
                 print("See the entry below. \n")
                 record.show()
@@ -816,9 +818,7 @@ class DNS_file:
         print("\n", "-" * 80, "\n")             
         # Show the the records of the DNS file
         self.records.show_records()
-    
-
-                                                                     
+                                                                 
     def beautify_DNS_entries(self):
         self.records.beautify()
     

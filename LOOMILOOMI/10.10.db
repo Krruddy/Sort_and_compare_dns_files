@@ -1,3 +1,6 @@
-1.10 IN      PTR       ruddyserv01b.production.test.
+1.10 IN   PTR   ruddyserv01b.production.test.
+2.10 IN   PTR   ruddyserv02b.production.test.
+3.10 IN   PTR   ruddyserv03b.production.test.
+
 
 
