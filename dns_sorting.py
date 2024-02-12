@@ -933,6 +933,7 @@ for file in DNS_files:
     file.compare_to_LOOM(file.LOOM_file)
     print(f"-" * 80)
     file.beautify_DNS_entries()
+    file.sort_DNS_entries()
     file.reconstruct_file()
     file.replace_file()
 
