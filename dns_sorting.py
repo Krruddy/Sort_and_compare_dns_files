@@ -7,7 +7,7 @@ import errno
 manual_LOOM_path = "/home/ruddy/github/Sort_and_compare_dns_files/LOOM"
 
 """
-This program increments the number of line 3, removes the duplicates and sorts based on IP addresses the DNS entries. 
+This program increments the number on line 3, removes the duplicates and sorts based on IP addresses the DNS entries. 
 This program does not delete the old file, it renames it with the extension ".old" and creates a new file with the same name as the old one.
 For the program to work, the following conditions must be met:
 - The file must only contain A records (the other records will be ignored).
@@ -30,7 +30,6 @@ class NoChangesMade(Exception):
 
 class UnkownRecordType(Exception):
     pass
-
 
 # Custom formatter class
 class CustomFormatter(logging.Formatter):
@@ -64,12 +63,16 @@ class Record:
         self.class_ = class_
         self.type_ = type_
         self.comment = comment
+     
+    def trim(self):
+        self.class_ = self.class_.strip()
+        self.type_ = self.type_.strip()
         
     def show(self):
-        print(f"TTL : {self.TTL}")
         print(f"class : {self.class_}")
-        print(f"type : {self.type_}")
+        print(f"TTL : {self.TTL}")
         print(f"comment : {self.comment}")
+        print(f"type : {self.type_}")
      
 class A_record(Record):
     def __init__ (self, server_name: str, TTL: int = None, class_: str = "IN", type_: str = "A", target: str = None, comment: str = ""):
@@ -85,46 +88,60 @@ class A_record(Record):
                 self.type_ == other.type_ and
                 self.target == other.target
             )
-        
+                
+    def simple_compare(self, other):
+        if isinstance(other, A_record):
+            return (self.server_name == other.server_name 
+                and self.class_ == other.class_
+                and self.type_ == other.type_
+                and self.target == other.target)
+        else:
+            raise TypeError("The object must be an instance of the class A_record.")
+
     # Trim every attribute of the class
     def trim(self):
+        super().trim()
         self.server_name = self.server_name.strip()
-        self.class_ = self.class_.strip()
-        self.type_ = self.type_.strip()
         self.target = self.target.strip()
-        self.comment = self.comment.strip()
-        
+
     def show(self):
         super().show()
         print(f"server name : {self.server_name}")
         print(f"target : {self.target}\n")
 
 class CNAME_record(Record):
-    def __init__ (self, domain_name: str, TTL: int = None, class_: str = "IN", type_: str = "CNAME", target: str = None, comment: str = ""):
+    def __init__ (self, alias: str, TTL: int = None, class_: str = "IN", type_: str = "CNAME", target: str = None, comment: str = ""):
         super().__init__(TTL, class_, type_, comment)
-        self.domain_name = domain_name
+        self.alias = alias
         self.target = target
         
     def __eq__(self, other):
         if isinstance(other, CNAME_record):
             return (
-                self.domain_name == other.domain_name and
+                self.alias == other.alias and
                 self.class_ == other.class_ and
                 self.type_ == other.type_ and
                 self.target == other.target
             )
 
+    def simple_compare(self, other):
+        if isinstance(other, CNAME_record):
+            return (self.alias == other.alias 
+                and self.class_ == other.class_
+                and self.type_ == other.type_
+                and self.target == other.target)
+        else:
+            raise TypeError("The object must be an instance of the class CNAME_record.")
+    
     # Trim every attribute of the class
     def trim(self):
-        self.domain_name = self.domain_name.strip()
-        self.class_ = self.class_.strip()
-        self.type_ = self.type_.strip()
+        super().trim()
+        self.alias = self.alias.strip()
         self.target = self.target.strip()
-        self.comment = self.comment.strip()
 
     def show(self):
         super().show()
-        print(f"domain name : {self.domain_name}")
+        print(f"domain name : {self.alias}")
         print(f"target : {self.target}\n")
                 
 class PTR_record(Record):
@@ -133,14 +150,6 @@ class PTR_record(Record):
         self.ip = ip
         self.domain_name = domain_name
 
-    # Trim every attribute of the class
-    def trim(self):
-        self.ip = self.ip.strip()
-        self.class_ = self.class_.strip()
-        self.type_ = self.type_.strip()
-        self.domain_name = self.domain_name.strip()
-        self.comment = self.comment.strip()
-    
     def __eq__(self, other):
         if isinstance(other, PTR_record):
             return (
@@ -149,165 +158,185 @@ class PTR_record(Record):
                 self.type_ == other.type_ and
                 self.domain_name == other.domain_name
             )
+
+    def simple_compare(self, other):
+        if isinstance(other, PTR_record):
+            return (self.ip == other.ip 
+                and self.class_ == other.class_
+                and self.type_ == other.type_
+                and self.domain_name == other.domain_name)
+        else:
+            raise TypeError("The object must be an instance of the class PTR_record.")
+
+    # Trim every attribute of the class
+    def trim(self):
+        super().trim()
+        self.ip = self.ip.strip()
+        self.domain_name = self.domain_name.strip()
     
     def show(self):
         super().show()
         print(f"ip : {self.ip}")
         print(f"domain name : {self.domain_name}\n")
-        
-class DNS_records:
- 
-    def __init__(self, reverse: bool = False):
-        self.is_reverse = reverse
-        self.records = {
-            "A": [],
-            "AAAA": [],
-            "CNAME": [],
-            "PTR": [],
-        }
-  
-    def set_reverse(self, reverse: bool):
-        self.is_reverse = reverse
+
+class Records:
+    
+    def __init__(self):
+        self.records = []
         
     def add_record(self, record: Record):
-        self.records[record.type_] += [record]
-        
+        self.records += [record]
+    
     def remove_record(self, record: Record):
-        self.records[record.type_].remove(record)
-    
-    def __eq__(self, other):
-        if isinstance(other, DNS_records):
-            return (
-                self.records == other.records
-            )
-    
-    def __ne__(self, other):
-        return not self.__eq__(other)
+        self.records.remove(record)
     
     def simple_compare(self, left, right): 
-        if isinstance(left, A_record) and isinstance(right, A_record):
-            if left.type_ == right.type_ == "A":
-                return self.simple_compare_A(left, right)
-            elif left.type_ == right.type_ == "CNAME":
-                return self.simple_compare_CNAME(left, right)
-            elif left.type_ == right.type_ == "PTR":
-                return self.simple_compare_PTR(left, right)
-                
-    def simple_compare_A(self, left, right):
-        if isinstance(left, A_record) and isinstance(right, A_record):
-            return (left.server_name == right.server_name 
-                and left.class_ == right.class_
-                and left.type_ == right.type_
-                and left.target == right.target)
-            
-    def simple_compare_CNAME(self, left, right):
-        if isinstance(left, CNAME_record) and isinstance(right, CNAME_record):
-            return (left.domain_name == right.domain_name 
-                and left.class_ == right.class_
-                and left.type_ == right.type_
-                and left.target == right.target)
+        if isinstance(left, Record) and isinstance(right, Record):
+            left.simple_compare(right)
+        else:
+            raise TypeError("The objects must be instances of the class Record.")
     
-    def simple_compare_PTR(self, left, right):
-        if isinstance(left, PTR_record) and isinstance(right, PTR_record):
-            return (left.ip == right.ip 
-                and left.class_ == right.class_
-                and left.type_ == right.type_
-                and left.domain_name == right.domain_name)
-          
     def show_records(self):
-        for record_type in self.records:
-            print(f"Records of type {record_type} :")
-            for record in self.records[record_type]:
-                record.show()
-                print("\n")
-             
-    def show_records_of_type(self, record_type: str):
-        for record in self.records[record_type]:
+        for record in self.records:
             record.show()
             print("\n")
     
     def show_number_of_records(self):
-        for record_type in self.records:
-            print(f"Number of records of type {record_type} : {len(self.records[record_type])}")
-          
-    def number_of_records_of_type(self, record_type: str):
-        return len(self.records[record_type])
-                
-    def beautify (self):
-        if not self.is_reverse:
-            self.beautify_standard()
-        else:
-            self.beautify_reverse()                
-    
-    def beautify_standard(self):
-        for record_type in self.records:
-            if len(self.records[record_type]) > 0:
-
-                if not self.is_reverse:
-                    longest_element = max([len(record.server_name) for record in self.records[record_type]])
-                    for record in self.records[record_type]:
-                        added_spaces = longest_element - len(record.server_name)+1
-                        record.server_name += " " * added_spaces
-                        record.class_ += " " * 6
-                        record.type_ += " " * 7 
-
-    def beautify_reverse(self):
-        for record_type in self.records:
-            if len(self.records[record_type]) > 0:
-
-                if self.is_reverse:
-                    longest_element = max([len(record.ip) for record in self.records[record_type]])
-                    for record in self.records[record_type]:
-                        added_spaces = longest_element - len(record.ip)+1
-                        record.ip += " " * added_spaces
-                        record.class_ += " " * 6
-                        record.type_ += " " * 7
-    
-    def remove_duplicates(self):
-        if not self.is_reverse:
-            self.remove_standard_duplicates()
-        else:
-            self.remove_reverse_duplicates() 
-        
-    def remove_standard_duplicates(self):
-        for record_type in self.records:
-            seen = set()
-            self.records[record_type] = [x for x in self.records[record_type] if not (x.server_name in seen or seen.add(x.server_name))]
-        
-    def remove_reverse_duplicates(self):
-        for record_type in self.records:
-            seen = set()
-            self.records[record_type] = [x for x in self.records[record_type] if not (x.ip in seen or seen.add(x.ip))]
- 
-    def sort(self):
-        if not self.is_reverse:
-            self.sort_standard()
-        else:
-            self.sort_reverse()
-            
-    def sort_standard(self, by: str = "server_name"):
-        for record_type in self.records:
-            self.records[record_type].sort(key=lambda x: getattr(x, by))
-    
-    def sort_reverse(self, by: str = "ip"):
-        for record_type in self.records:
-            self.records[record_type].sort(key=lambda x: list(map(int, getattr(x, by).split('.'))))   
+        print(f"Number of records : {len(self.records)}")
     
     def trim(self):
-        for record_type in self.records:
-            for record in self.records[record_type]:
-                record.trim()
+        for record in self.records:
+            record.trim()
+    
+    def number_of_records(self):
+        return len(self.records)
+            
+    
+class A_records(Records):
+  
+    def __init__(self):
+        super().__init__()
+        
+    def beautify(self):
+        if len(self.records) != 0:
+            longest_element = max([len(record.server_name) for record in self.records])
+            for record in self.records:
+                added_spaces = longest_element - len(record.server_name)+1
+                record.server_name += " " * added_spaces
+                record.class_ += " " * 6
+                record.type_ += " " * 7
+    
+    def remove_duplicates(self):
+        seen = set()
+        self.records = [x for x in self.records if not (x.target in seen or seen.add(x.target))]
+        
+    def sort(self):
+        self.records.sort(key=lambda x: list(map(int, x.target.split('.'))))
+
+    def output_lines(self):
+        lines = []
+        for record in self.records:
+            lines += [record.server_name + record.class_ + record.type_ + record.target + "\n"]
+        return lines
+    
+
+class CNAME_records(Records):
+      
+    def __init__(self):
+        super().__init__()
+        
+    def beautify(self):
+        
+        if len(self.records) != 0:
+            longest_element = max([len(record.alias) for record in self.records])
+            for record in self.records:
+                added_spaces = longest_element - len(record.alias)+1
+                record.alias += " " * added_spaces
+                record.class_ += " " * 6
+                record.type_ += " " * 7
+    
+    def remove_duplicates(self):
+        seen = set()
+        self.records = [x for x in self.records if not (x.alias in seen or seen.add(x.alias))]
+        
+    def sort(self):
+        self.records.sort(key=lambda x: x.alias)
+
+    def output_lines(self):
+        lines = []
+        for record in self.records:
+            lines += [record.alias + record.class_ + record.type_ + record.target + "\n"]
+        return lines
+
+class PTR_records(Records):
+  
+    def __init__(self):
+        super().__init__()
+        
+    def beautify(self):
+        if len(self.records) != 0:
+            longest_element = max([len(record.ip) for record in self.records])
+            for record in self.records:
+                added_spaces = longest_element - len(record.ip)+1
+                record.ip += " " * added_spaces
+                record.class_ += " " * 6
+                record.type_ += " " * 7
+    
+    def remove_duplicates(self):
+        seen = set()
+        self.records = [x for x in self.records if not (x.ip in seen or seen.add(x.ip))]
+        
+    def sort(self):
+        self.records.sort(key=lambda x: list(map(int, x.ip.split('.'))))  
     
     def output_lines(self):
         lines = []
-        for record_type in self.records:
-            for record in self.records[record_type]:
-                if record_type == "A":
-                    lines += [record.server_name + record.class_ + record.type_ + record.target + "\n"]
-                if record_type == "CNAME":
-                    lines += [record.domain_name + record.class_ + record.type_ + record.target + "\n"]
-                if record_type == "PTR":
-                    lines += [record.ip + record.class_ + record.type_ + record.domain_name + "\n"]
+        for record in self.records:
+            lines += [record.ip + record.class_ + record.type_ + record.domain_name + "\n"]
+        return lines      
+      
+class DNS_records:
+ 
+    def __init__(self, reverse: bool = False):
+        self.is_reverse = reverse
+        self.A_records = A_records()
+        self.CNAME_records = CNAME_records()
+        self.PTR_records = PTR_records()
+        self.all_records = [self.A_records, self.CNAME_records, self.PTR_records]
+        
+    def set_reverse(self, reverse: bool):
+        self.is_reverse = reverse   
+  
+    def show_records(self):
+        for record_type in self.all_records:
+            record_type.show_records()
+     
+    def show_number_of_records(self):
+        for record_type in self.all_records:
+            record_type.show_number_of_records()        
+        
+    def beautify (self):
+        for record_type in self.all_records:
+            record_type.beautify()                
+    
+    def remove_duplicates(self):
+        for record_type in self.all_records:
+            record_type.remove_duplicates()
+        
+    def sort(self):
+        for record_type in self.all_records:
+            record_type.sort()
+            
+    def trim(self):
+        for record_type in self.all_records:
+            record_type.trim()
+            
+    def output_lines(self):
+        lines = []
+        
+        for record_type in self.all_records:
+            lines.extend(record_type.output_lines())
+        
         return lines
             
 class Comments:
@@ -344,19 +373,17 @@ class LOOM_file:
         return lines
     
     def __set_list_of_DNS_records(self, file_content: list):
-        for line in file_content:
+        for line in file_content.copy():
             # Empty lines
             if len(line.split()) > 0:
                 # Comments
                 if line.strip()[0] != ";":
                     if self.find_ip_in_line(line) != None: # A, AAAA
-                        print(f"a comment is being added for line {line}")
                         if line.split()[2] == "A":
                             
                             current_record = A_record(server_name = line.split()[0], class_ = line.split()[1], type_ = line.split()[2], target = line.split()[3])
-                            print(f"length of line is {len(line.split())}")
                             
-                            self.records.add_record(current_record)
+                            self.records.A_records.add_record(current_record)
                             
                         elif line.split()[2] == "AAAA":
                             pass
@@ -364,14 +391,13 @@ class LOOM_file:
                         if line.split()[2] == "PTR":
                             print(f"PTR record {line}")
                             current_record = PTR_record(ip = line.split()[0], class_ = line.split()[1], type_ = line.split()[2], domain_name = line.split()[3])
-                            self.records.add_record(current_record)
+                            self.records.PTR_records.add_record(current_record)
                         
-                    elif len(line.split()) > 4: # Other records
+                    elif len(line.split()) >= 4: # Other records
                         if line.split()[2] == "CNAME":
                             
-                            current_record = CNAME_record(domain_name = line.split()[0], class_ = line.split()[1], type_ = line.split()[2], target = line.split()[3])
-                            self.records.add_record(current_record)
-
+                            current_record = CNAME_record(alias = line.split()[0], class_ = line.split()[1], type_ = line.split()[2], target = line.split()[3])
+                            self.records.CNAME_records.add_record(current_record)
                         elif line.split()[2] == "MX":
                             pass
                     else:
@@ -455,33 +481,33 @@ class DNS_file:
     # a function named __set_list_of_DNS_records that takes self, the file content and returns a list of DNS entries    
     def __set_list_of_DNS_records(self, file_content: list):
         
-        for line in file_content:
+        for line in file_content.copy():
             # Empty lines
             if len(line.split()) > 0:
                 # Comments
                 if line.strip()[0] != ";":
                     if self.find_ip_in_line(line) != None: # A, AAAA
-                        print(f"a comment is being added for line {line}")
                         if line.split()[2] == "A":
                             
-                            current_record = A_record(server_name = line.split()[0], class_ = line.split()[1], type_ = line.split()[2], target = line.split()[3])
-                            print(f"length of line is {len(line.split())}")
-                            
-                            self.records.add_record(current_record)
+                            current_record = A_record(server_name = line.split()[0], class_ = line.split()[1], type_ = line.split()[2], target = line.split()[3])                  
+                            self.records.A_records.add_record(current_record)
+                            file_content.remove(line)
                             
                         elif line.split()[2] == "AAAA":
                             pass
                     elif self.find_reverse_ip_in_line(line) != None: # PTR
                         if line.split()[2] == "PTR":
-                            print(f"PTR record {line}")
+
                             current_record = PTR_record(ip = line.split()[0], class_ = line.split()[1], type_ = line.split()[2], domain_name = line.split()[3])
-                            self.records.add_record(current_record)
+                            self.records.PTR_records.add_record(current_record)
+                            file_content.remove(line)
                         
-                    elif len(line.split()) > 4: # Other records
+                    elif len(line.split()) >= 4: # Other records
+                        print(line.split()[2])
                         if line.split()[2] == "CNAME":
-                            
-                            current_record = CNAME_record(domain_name = line.split()[0], class_ = line.split()[1], type_ = line.split()[2], target = line.split()[3])
-                            self.records.add_record(current_record)
+                            current_record = CNAME_record(alias = line.split()[0], class_ = line.split()[1], type_ = line.split()[2], target = line.split()[3])
+                            self.records.CNAME_records.add_record(current_record)
+                            file_content.remove(line)
 
                         elif line.split()[2] == "MX":
                             pass
@@ -521,7 +547,7 @@ class DNS_file:
         final_DNS_file = self.__create_tmp_file(f"{self.name}")
         
         
-        # Add the lines to the file that aren't the DNS entries
+        # Add the lines to the file that aren't the DNS records
         for index, line in enumerate(self.file_content):
             if  index == 2:
                 final_DNS_file.write(reconstructed_line)
@@ -529,9 +555,10 @@ class DNS_file:
                 final_DNS_file.write(line)
         
         output_lines = self.records.output_lines()
-        
+
         # Add the sorted DNS entries
         for line in output_lines:
+            print(line)
             final_DNS_file.write(line)
             
         # Close the file
@@ -573,9 +600,9 @@ class DNS_file:
 
     def compare_to_LOOM(self, Loom_file: LOOM_file):
         
-        if Loom_file.records.number_of_records_of_type("A") > 0:
+        if Loom_file.records.A_records.number_of_records() > 0:
             self.compare_A_to_LOOM(Loom_file)
-        if Loom_file.records.number_of_records_of_type("PTR") > 0:
+        if Loom_file.records.PTR_records.number_of_records() > 0:
             self.compare_PTR_to_LOOM(Loom_file)
     
     def compare_PTR_to_LOOM(self, Loom_file: LOOM_file):
@@ -586,8 +613,8 @@ class DNS_file:
         # Entries that are in the LOOM file but not in the DNS file
         records_not_in_DNS = []
         
-        for LOOM_record in Loom_file.records.records["PTR"]:
-            if LOOM_record not in self.records.records["PTR"]:
+        for LOOM_record in Loom_file.records.PTR_records.records:
+            if LOOM_record not in self.records.PTR_records.records:
                 records_not_in_DNS += [LOOM_record]
                 
                 
@@ -595,22 +622,22 @@ class DNS_file:
         # Entries that have the same ip address but not the same server name
         records_same_ip = []
         
-        for LOOM_record in Loom_file.records.records["PTR"]:
-            if LOOM_record in self.records.records["PTR"]:
+        for LOOM_record in Loom_file.records.PTR_records.records:
+            if LOOM_record in self.records.PTR_records.records:
                 continue
             else:
-                for DNS_record in self.records.records["PTR"]:
+                for DNS_record in self.records.PTR_records.records:
                     if LOOM_record.ip == DNS_record.ip:
                         records_same_ip += [LOOM_record]
                         
         # Entries that have the same server name but not the same ip address
         records_same_server_name = []
         
-        for LOOM_record in Loom_file.records.records["PTR"]:
-            if LOOM_record in self.records.records["PTR"]:
+        for LOOM_record in Loom_file.records.PTR_records.records:
+            if LOOM_record in self.records.PTR_records.records:
                 continue
             else:
-                for DNS_record in self.records.records["PTR"]:
+                for DNS_record in self.records.PTR_records.records:
                     if LOOM_record.domain_name == DNS_record.domain_name:
                         records_same_server_name += [LOOM_record]
                         
@@ -635,7 +662,7 @@ class DNS_file:
                 print(f"The DNS entry that translates the ip address {record.ip} to the domain name {record.domain_name} in the LOOM file, is not present in the local DNS file {self.name}.")
                 print("But, the following entry/s is/are present in the local DNS file and translate the same ip address\n")
                 
-                for line in self.records.records["PTR"]:
+                for line in self.records.PTR_records.records:
                     if line.ip == record.ip:
                         line.show()
                         
@@ -643,10 +670,10 @@ class DNS_file:
                     answer = input(f"Would you like to replace that entry in the local DNS file with the entry in the LOOM file ? (y/N) : ")
                     if answer.lower() == "y":
                         logger.info(f"replacing the entry in local DNS file {self.name} ...")
-                        for line in self.records.records["PTR"]:
+                        for line in self.records.PTR_records.records:
                             if line.ip == record.ip:
-                                self.records.remove_record(line)
-                        self.records.add_record(record)
+                                self.records.PTR_records.remove_record(line)
+                        self.records.PTR_records.add_record(record)
                         break
                     elif answer.lower() == "n" or answer == "":
                         logger.info(f"The entry will not be added to the local DNS file {self.name}.")
@@ -659,7 +686,7 @@ class DNS_file:
                 print(f"The DNS entry that translates the ip address {record.ip} to the domain name {record.domain_name} in the LOOM file, is not present in the local DNS file {self.name}.")
                 print(f"But, the following entr/s is/are present in the local DNS resovles the same server name.\n")
                 
-                for line in self.records.records["PTR"]:
+                for line in self.records.PTR_records.records:
                     if line.domain_name == record.domain_name:
                         line.show()
                         
@@ -667,10 +694,10 @@ class DNS_file:
                     answer = input(f"Would you like to replace that entry in the local DNS file with the entry in the LOOM file ? (y/N) : ")
                     if answer.lower() == "y":
                         logger.info(f"replacing the entry in local DNS file {self.name} ...")
-                        for line in self.records.records["PTR"]:
+                        for line in self.records.PTR_records.records:
                             if line.domain_name == record.domain_name:
-                                self.records.remove_record(line)
-                        self.records.add_record(record)
+                                self.records.PTR_records.remove_record(line)
+                        self.records.PTR_records.add_record(record)
                         break
                     elif answer.lower() == "n" or answer == "":
                         logger.info(f"The entry will not be added to the local DNS file {self.name}.")
@@ -686,7 +713,7 @@ class DNS_file:
                     answer = input(f"Would you like to add that entry to the local DNS file {self.name} ? (y/N) : ")
                     if answer.lower() == "y":
                         logger.info(f"Adding the entry to the local DNS file {self.name} ...")
-                        self.records.add_record(record)
+                        self.records.PTR_records.add_record(record)
                         break
                     elif answer.lower() == "n" or answer == "":
                         logger.info(f"The entry will not be added to the local DNS file {self.name}.")
@@ -705,29 +732,29 @@ class DNS_file:
         # Entries that are in the LOOM file but not in the DNS file
         records_not_in_DNS = []
         
-        for LOOM_record in Loom_file.records.records["A"]:
-            if LOOM_record not in self.records.records["A"]:
+        for LOOM_record in Loom_file.records.A_records.records:
+            if LOOM_record not in self.records.A_records.records:
                 records_not_in_DNS += [LOOM_record]
                 
         # Entries that have the same ip address but not the same server name
         records_same_ip = []
         
-        for LOOM_record in Loom_file.records.records["A"]:
-            if LOOM_record in self.records.records["A"]:
+        for LOOM_record in Loom_file.records.A_records.records:
+            if LOOM_record in self.records.A_records.records:
                 continue
             else:
-                for DNS_record in self.records.records["A"]:
+                for DNS_record in self.records.A_records.records:
                     if LOOM_record.target == DNS_record.target:
                         records_same_ip += [LOOM_record]
                         
         # Entries that have the same server name but not the same ip address
         records_same_server_name = []
         
-        for LOOM_record in Loom_file.records.records["A"]:
-            if LOOM_record in self.records.records["A"]:
+        for LOOM_record in Loom_file.records.A_records.records:
+            if LOOM_record in self.records.A_records.records:
                 continue
             else:
-                for DNS_record in self.records.records["A"]:
+                for DNS_record in self.records.A_records.records:
                     if LOOM_record.server_name == DNS_record.server_name:
                         records_same_server_name += [LOOM_record]
                         
@@ -752,7 +779,7 @@ class DNS_file:
                 print(f"The DNS entry that translates the name server {record.server_name} to the ip address {record.target} in the LOOM file, is not present in the local DNS file {self.name}.")
                 print("But, the following entry/s is/are present in the local DNS file and translate to the same ip address. \n")
                 
-                for line in self.records.records["A"]:
+                for line in self.records.A_records.records:
                     if line.target == record.target:
                         line.show()
                         
@@ -760,10 +787,10 @@ class DNS_file:
                     answer = input(f"Would you like to replace that entry in the local DNS file with the entry in the LOOM file ? (y/N) : ")
                     if answer.lower() == "y":
                         logger.info(f"replacing the entry in local DNS file {self.name} ...")
-                        for line in self.records.records["A"]:
+                        for line in self.records.A_records.records:
                             if line.target == record.target:
-                                self.records.remove_record(line)
-                        self.records.add_record(record)
+                                self.records.A_records.remove_record(line)
+                        self.records.A_records.add_record(record)
                         break
                     elif answer.lower() == "n" or answer == "":
                         logger.info(f"The entry will not be added to the local DNS file {self.name}.")
@@ -776,7 +803,7 @@ class DNS_file:
                 print(f"The DNS entry that makes the ip address {record.target} point to the server {record.server_name} in the LOOM file, is not present in the local DNS file {self.name}.")
                 print(f"But, the following entr/s is/are present in the local DNS resovles the same server name.\n")
                 
-                for line in self.records.records["A"]:
+                for line in self.records.A_records.records:
                     if line.server_name == record.server_name:
                         line.show()
                         
@@ -784,10 +811,10 @@ class DNS_file:
                     answer = input(f"Would you like to replace that entry in the local DNS file with the entry in the LOOM file ? (y/N) : ")
                     if answer.lower() == "y":
                         logger.info(f"replacing the entry in local DNS file {self.name} ...")
-                        for line in self.records.records["A"]:
+                        for line in self.records.A_records.records:
                             if line.server_name == record.server_name:
-                                self.records.remove_record(line)
-                        self.records.add_record(record)
+                                self.records.A_records.remove_record(line)
+                        self.records.A_records.add_record(record)
                         break
                     elif answer.lower() == "n" or answer == "":
                         logger.info(f"The entry will not be added to the local DNS file {self.name}.")
@@ -805,7 +832,7 @@ class DNS_file:
                     answer = input(f"Would you like to add that entry to the local DNS file {self.name} ? (y/N) : ")
                     if answer.lower() == "y":
                         logger.info(f"Adding the entry to the local DNS file {self.name} ...")
-                        self.records.add_record(record)
+                        self.records.A_records.add_record(record)
                         break
                     elif answer.lower() == "n" or answer == "":
                         logger.info(f"The entry will not be added to the local DNS file {self.name}.")
@@ -834,152 +861,112 @@ class DNS_file:
     @LOOM_file.deleter
     def LOOM_file(self):
         del self._LOOM_file
-         
-def parse_arguments():
-    logger.info("Parsing the arguments ...")
-    if len(sys.argv) == 1:
-        logger.error(f"No arguments have been passed.")
-        logger.error(f"Exiting the program.")
-        sys.exit(errno.ENOENT)
-    else:
-        if "--help" in sys.argv or "-h" in sys.argv:
-            print(f"Here are an examples of how to use this program :\n")
-            print(f"python3 dns_sorting.py dnsfile.db \n")
-            print(f"python3 dns_sorting.py dnsfile.db 10.10.db\n")
-            print(f"python3 dns_sorting.py --LOOM_path /home/ruddy/Documents/LOOM/ dnsfile.db 10.10.db\n")
-            print("-" * 80)
-            print("exiting the program ...")
-            sys.exit(0)
-        elif "--LOOM_path" in sys.argv:
-            if len(sys.argv) <= 3:
-                logger.error(f"No file has been passed as an argument.")
-                logger.error(f"Exiting the program.")
-                sys.exit(errno.ENOENT)
-            else:    
-                LOOM_path = sys.argv[sys.argv.index("--LOOM_path") + 1]
-                logger.info(f"The path to the LOOM directory is {LOOM_path}.")
+
+if __name__ == "__main__":
+                
+    def parse_arguments():
+        logger.info("Parsing the arguments ...")
+        if len(sys.argv) == 1:
+            logger.error(f"No arguments have been passed.")
+            logger.error(f"Exiting the program.")
+            sys.exit(errno.ENOENT)
         else:
-            LOOM_path = None
-            logger.warning(f"The path to the LOOM directory is not specified, using the path predefined in the program.")
+            if "--help" in sys.argv or "-h" in sys.argv:
+                print(f"Here are an examples of how to use this program :\n")
+                print(f"python3 dns_sorting.py dnsfile.db \n")
+                print(f"python3 dns_sorting.py dnsfile.db 10.10.db\n")
+                print(f"python3 dns_sorting.py --LOOM_path /home/ruddy/Documents/LOOM/ dnsfile.db 10.10.db\n")
+                print("-" * 80)
+                print("exiting the program ...")
+                sys.exit(0)
+            elif "--LOOM_path" in sys.argv:
+                if len(sys.argv) <= 3:
+                    logger.error(f"No file has been passed as an argument.")
+                    logger.error(f"Exiting the program.")
+                    sys.exit(errno.ENOENT)
+                else:    
+                    LOOM_path = sys.argv[sys.argv.index("--LOOM_path") + 1]
+                    logger.info(f"The path to the LOOM directory is {LOOM_path}.")
+            else:
+                LOOM_path = None
+                logger.warning(f"The path to the LOOM directory is not specified, using the path predefined in the program.")
+                
+            # populates the list of DNS_files
+            DNS_files = []
+            logger.info(f"Populating the DNS list ...")
+            for index, argument in enumerate(sys.argv):
+                if argument == "--LOOM_path" or sys.argv[index - 1] == "--LOOM_path":
+                    continue
+                elif index != 0:
+                    logger.info(f"adding {argument} to the list of DNS files ...")
+                    DNS_files += [DNS_file(argument)]
+                    print(f"-" * 80)
             
-        # populates the list of DNS_files
-        DNS_files = []
-        logger.info(f"Populating the DNS list ...")
-        for index, argument in enumerate(sys.argv):
-            if argument == "--LOOM_path" or sys.argv[index - 1] == "--LOOM_path":
-                continue
-            elif index != 0:
-                logger.info(f"adding {argument} to the list of DNS files ...")
-                DNS_files += [DNS_file(argument)]
-                print(f"-" * 80)
+            return DNS_files, LOOM_path
         
-        return DNS_files, LOOM_path
-    
-logger.info("Starting the program.")
+    logger.info("Starting the program.")
 
-DNS_files, LOOM_path = parse_arguments()
+    DNS_files, LOOM_path = parse_arguments()
 
-if LOOM_path == None:
-    LOOM_path = manual_LOOM_path
-                        
-# increments the value to increment, deletes the duplicate entries, sorts the DNS entries, reconstructs the file and replaces the old file with the new one
-for file in DNS_files:
-    logger.info(f"incrementing the value for {file.name} ...")
-    file.increment_incre_value()
-    logger.info(f"deleting the duplicate entries for {file.name} ...")
-    file.beautify_DNS_entries()
-    file.delete_duplicate_entries()
-    logger.info(f"sorting the DNS entries for {file.name} ...")
-    file.sort_DNS_entries()
-    logger.info(f"reconstructing the file {file.name} ...")
-    file.reconstruct_file()
-    logger.info(f"replacing the old file with the new one for {file.name} ...")
-    file.replace_file()
-    print(f"-" * 80)
-    
-###################################
-# The file comparison starts here #
-###################################
-print(f"\n" * 2)
-print(f"#" * 32)
-print(f"# Starting the file comparison #")
-print(f"#" * 32, "\n\n")
-print(f"\n" * 2)
-
-if os.path.isdir(f"{LOOM_path}") == False:
-    logger.error(f"The path {LOOM_path} is not valid.")
-    logger.error(f"The comparison between the DNS files and the LOOM files cannot be done.")
-    logger.error(f"Exiting the program.")
-    sys.exit(errno.ENOENT)
-
-
-
-LOOM_files = []
-
-# instantiate the LOOM files
-for file in DNS_files:
-    try:
-        Loom_file = LOOM_file(LOOM_path, file)
-        LOOM_files += [Loom_file]
-        file.LOOM_file = Loom_file
-        
-    except FileNotFoundError:
-        print(f"-" * 80)
-        continue
-
-for file in DNS_files:
-    print(f"-" * 80)
-    print(f"Comparing the DNS file {file.name} with the LOOM file {file.LOOM_file.name} ...")
-    file.compare_to_LOOM(file.LOOM_file)
-    print(f"-" * 80)
-    file.beautify_DNS_entries()
-    file.sort_DNS_entries()
-    file.reconstruct_file()
-    file.replace_file()
-
-#LOOM_files[0].show_records()
-
-if False:
-    #define the path to the LOOM directory and check if it exists
-
+    if LOOM_path == None:
+        LOOM_path = manual_LOOM_path
+                            
+    # increments the value to increment, deletes the duplicate entries, sorts the DNS entries, reconstructs the file and replaces the old file with the new one
     for file in DNS_files:
-        try:
-            logger.info(f"Setting up the LOOM configuration for {file.name} ...")
-            file.setup_LOOM_config(LOOM_path)
-        except FileNotFoundError:
-            print(f"-" * 80)
-            continue
-        logger.info(f"Looking for duplicates in the LOOM file {file.LOOM_file_path} ...")
-        file.delete_duplicate_entries(LOOM = True)
-        # It's useless to sort the content of the variable that contains the LOOM file content because it's not going to be written to the file.
-        #logger.info(f"Attempting to sort the LOOM file {file.LOOM_file_path} ...")
-        #file.sort_DNS_entries(LOOM = True)
-        try:
-            logger.info(f"Comparing the DNS entries of the file {file.name} with the LOOM file {file.LOOM_file_path} ...")
-            file.compare_DNS_entries()
-        except (IdenticalEntries, NoChangesMade):
-            print(f"-" * 80)
-            continue
-        file.sort_DNS_entries(LOOM = True)
-        logger.info(f"reconstructing the file {file.name} with the added entries to the DNS file ...") 
+        logger.info(f"incrementing the value for {file.name} ...")
+        file.increment_incre_value()
+        logger.info(f"deleting the duplicate entries for {file.name} ...")
         file.beautify_DNS_entries()
-        file.reconstruct_file(LOOM = True)
+        file.delete_duplicate_entries()
+        logger.info(f"sorting the DNS entries for {file.name} ...")
+        file.sort_DNS_entries()
+        logger.info(f"reconstructing the file {file.name} ...")
+        file.reconstruct_file()
         logger.info(f"replacing the old file with the new one for {file.name} ...")
         file.replace_file()
         print(f"-" * 80)
+        
+    ###################################
+    # The file comparison starts here #
+    ###################################
+    print(f"\n" * 2)
+    print(f"#" * 32)
+    print(f"# Starting the file comparison #")
+    print(f"#" * 32, "\n\n")
+    print(f"\n" * 2)
 
-logger.info("The program has finished running.")
+    if os.path.isdir(f"{LOOM_path}") == False:
+        logger.error(f"The path {LOOM_path} is not valid.")
+        logger.error(f"The comparison between the DNS files and the LOOM files cannot be done.")
+        logger.error(f"Exiting the program.")
+        sys.exit(errno.ENOENT)
 
 
-# Should I add Docstrings ?
-# Add a function that checks if all of the DNS entries are of type A (read the 3rd word of the lines that contain an ip address).
-# Have None instead of having objects with missing attributes.
-# Sort and delete duplicates in the object that represents the LOOM file, but don't write it to the file.
-# if there are duplicates in LOOM warn the user.
-# After having asked for the changes to the user, do a last check between the DNS file and the LOOM file. then if they aren't the same warn the user.
-#have an __str__ method for the DNS_file class.
-# hanfdle comments in the DNS files dictionary key=line, value=comment
-# In the DNS files, there are duplicate entries that don't have the same tabulation. So instead of calling it beautify, you should call it normalize. Or changing the way the entries are stored. make it so that they are stored as disctionaries or pairs that way you can very easily sort and remove duplicates
-# handle entries that have the same server name but not the same ip address
-# add a type that is a list of DNS RECORDS so that they sort themselves and remove duplicates based on theire type.
-# move simple_compare_PTR to the records themselves instead of the records class.
+
+    LOOM_files = []
+
+    # instantiate the LOOM files
+    for file in DNS_files:
+        try:
+            Loom_file = LOOM_file(LOOM_path, file)
+            LOOM_files += [Loom_file]
+            file.LOOM_file = Loom_file
+            
+        except FileNotFoundError:
+            print(f"-" * 80)
+            continue
+
+    for file in DNS_files:
+        print(f"-" * 80)
+        print(f"Comparing the DNS file {file.name} with the LOOM file {file.LOOM_file.name} ...")
+        file.compare_to_LOOM(file.LOOM_file)
+        file.beautify_DNS_entries()
+        logger.info(f"sorting the DNS entries for {file.name} ...")
+        file.sort_DNS_entries()
+        logger.info(f"reconstructing the file {file.name} ...")
+        file.reconstruct_file()
+        logger.info(f"replacing the old file with the new one for {file.name} ...")
+        file.replace_file()
+
+
+    logger.info("The program has finished running.")
