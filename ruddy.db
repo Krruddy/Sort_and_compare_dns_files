@@ -1,6 +1,6 @@
  $TTL    38400
 @       IN      SOA     ruddyserveurtest01.production.test      operateur\.dns.production.test. (
-        2017092673 ;
+        2017092697 ;
         1d ;
         1h ;
         4W ;
@@ -17,14 +17,11 @@
 ;finally it should ask for 06 because they have the same name server but not the same ip
 
 
-
-
-
-
 ruddyserv04b IN      A       192.158.10.20
 ruddyserv05b IN      A       192.168.10.5
 ruddyserv01b IN      A       192.168.10.10
 ruddyserv02b IN      A       192.168.10.20
 ruddyserv03b IN      A       192.168.10.30
-mail IN      CNAME       example.com.
-www  IN      CNAME       example.com.
+ruddyserv09b IN      A       192.168.10.90
+web IN      CNAME       example.fr
+www IN      CNAME       example.fr

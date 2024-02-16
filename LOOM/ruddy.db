@@ -1,5 +1,6 @@
 ruddyserv01b IN      A       192.168.10.10
 ruddyserv02b IN      A       192.168.10.20
-
-
+ruddyserv09b IN      A       192.168.10.90
+www    IN  CNAME  example.fr
+web    IN  CNAME  example.fr
 

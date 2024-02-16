@@ -1,6 +1,6 @@
  $TTL    38400
 @       IN      SOA     ruddyserveurtest01.production.test      operateur\.dns.production.test. (
-2022092945 ;
+2022092947 ;
         1d ;
         1h ;
         4W ;
@@ -17,4 +17,5 @@
 1.10 IN      PTR       ruddyserv01b.production.test.
 2.10 IN      PTR       ruddyserv02b.production.test.
 3.0  IN      PTR       xx
+3.9  IN      PTR       ruddyserv09b.production.test.
 3.10 IN      PTR       ruddyserv03b.production.test.

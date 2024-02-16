@@ -211,7 +211,6 @@ class Records:
     def number_of_records(self):
         return len(self.records)
             
-    
 class A_records(Records):
   
     def __init__(self):
@@ -602,128 +601,10 @@ class DNS_file:
         
         if Loom_file.records.A_records.number_of_records() > 0:
             self.compare_A_to_LOOM(Loom_file)
+        if Loom_file.records.CNAME_records.number_of_records() > 0:
+            self.compare_CNAME_to_LOOM(Loom_file)
         if Loom_file.records.PTR_records.number_of_records() > 0:
             self.compare_PTR_to_LOOM(Loom_file)
-    
-    def compare_PTR_to_LOOM(self, Loom_file: LOOM_file):
-        
-        self.records.trim()
-        self.LOOM_file.records.trim()
-        
-        # Entries that are in the LOOM file but not in the DNS file
-        records_not_in_DNS = []
-        
-        for LOOM_record in Loom_file.records.PTR_records.records:
-            if LOOM_record not in self.records.PTR_records.records:
-                records_not_in_DNS += [LOOM_record]
-                
-                
-                
-        # Entries that have the same ip address but not the same server name
-        records_same_ip = []
-        
-        for LOOM_record in Loom_file.records.PTR_records.records:
-            if LOOM_record in self.records.PTR_records.records:
-                continue
-            else:
-                for DNS_record in self.records.PTR_records.records:
-                    if LOOM_record.ip == DNS_record.ip:
-                        records_same_ip += [LOOM_record]
-                        
-        # Entries that have the same server name but not the same ip address
-        records_same_server_name = []
-        
-        for LOOM_record in Loom_file.records.PTR_records.records:
-            if LOOM_record in self.records.PTR_records.records:
-                continue
-            else:
-                for DNS_record in self.records.PTR_records.records:
-                    if LOOM_record.domain_name == DNS_record.domain_name:
-                        records_same_server_name += [LOOM_record]
-                        
-        # Print the content of the lists
-        print(f"Entries that are in the LOOM file but not in the DNS file :")
-        for record in records_not_in_DNS:
-            print(record.show())
-            
-        print(f"Entries that have the same ip address but not the same server name :")
-        for record in records_same_ip:
-            print(record.show())
-            
-        print(f"Entries that have the same server name but not the same ip address :")
-        for record in records_same_server_name:
-            print(record.show())
-            
-        # Ask the user if the DNS entries should be updated to match the LOOM entries.
-        for record in records_not_in_DNS:
-            print("\n", "-" * 80, "\n")
-            if record in records_same_ip:
-                print(f"file: {self.name}\n")
-                print(f"The DNS entry that translates the ip address {record.ip} to the domain name {record.domain_name} in the LOOM file, is not present in the local DNS file {self.name}.")
-                print("But, the following entry/s is/are present in the local DNS file and translate the same ip address\n")
-                
-                for line in self.records.PTR_records.records:
-                    if line.ip == record.ip:
-                        line.show()
-                        
-                for attempt in range(3):
-                    answer = input(f"Would you like to replace that entry in the local DNS file with the entry in the LOOM file ? (y/N) : ")
-                    if answer.lower() == "y":
-                        logger.info(f"replacing the entry in local DNS file {self.name} ...")
-                        for line in self.records.PTR_records.records:
-                            if line.ip == record.ip:
-                                self.records.PTR_records.remove_record(line)
-                        self.records.PTR_records.add_record(record)
-                        break
-                    elif answer.lower() == "n" or answer == "":
-                        logger.info(f"The entry will not be added to the local DNS file {self.name}.")
-                        break
-                    else:
-                        print(f"invalide input, please try again.")
-                        
-            elif record in records_same_server_name:
-                print(f"file: {self.name}\n")
-                print(f"The DNS entry that translates the ip address {record.ip} to the domain name {record.domain_name} in the LOOM file, is not present in the local DNS file {self.name}.")
-                print(f"But, the following entr/s is/are present in the local DNS resovles the same server name.\n")
-                
-                for line in self.records.PTR_records.records:
-                    if line.domain_name == record.domain_name:
-                        line.show()
-                        
-                for attempt in range(3):
-                    answer = input(f"Would you like to replace that entry in the local DNS file with the entry in the LOOM file ? (y/N) : ")
-                    if answer.lower() == "y":
-                        logger.info(f"replacing the entry in local DNS file {self.name} ...")
-                        for line in self.records.PTR_records.records:
-                            if line.domain_name == record.domain_name:
-                                self.records.PTR_records.remove_record(line)
-                        self.records.PTR_records.add_record(record)
-                        break
-                    elif answer.lower() == "n" or answer == "":
-                        logger.info(f"The entry will not be added to the local DNS file {self.name}.")
-                        break
-        
-            elif record not in records_same_ip and record not in records_same_server_name:
-                print(f"file: {self.name}\n")
-                print(f"The DNS entry that translates the ip address {record.ip} to the domain name {record.domain_name} in the LOOM file, is not present in the local DNS file {self.name}.")
-                print("See the entry below. \n")
-                record.show()
-                
-                for attempt in range(3):
-                    answer = input(f"Would you like to add that entry to the local DNS file {self.name} ? (y/N) : ")
-                    if answer.lower() == "y":
-                        logger.info(f"Adding the entry to the local DNS file {self.name} ...")
-                        self.records.PTR_records.add_record(record)
-                        break
-                    elif answer.lower() == "n" or answer == "":
-                        logger.info(f"The entry will not be added to the local DNS file {self.name}.")
-                        break
-                    else:
-                        print(f"invalide input, please try again.")
-                        
-        print("\n", "-" * 80, "\n")
-        # Show the the records of the DNS file
-        self.records.show_records()       
     
     def compare_A_to_LOOM(self, Loom_file: LOOM_file):
         
@@ -843,6 +724,202 @@ class DNS_file:
         print("\n", "-" * 80, "\n")             
         # Show the the records of the DNS file
         self.records.show_records()
+    
+    def compare_CNAME_to_LOOM(self, Loom_file: LOOM_file):
+        self.records.trim()
+        self.LOOM_file.records.trim()
+        
+        # Entries that are in the LOOM file but not in the DNS file
+        records_not_in_DNS = []
+        
+        for LOOM_record in Loom_file.records.CNAME_records.records:
+            if LOOM_record not in self.records.CNAME_records.records:
+                records_not_in_DNS += [LOOM_record]
+                
+        # Entries that have the same alias but not the same target  
+        records_same_alias = []
+        
+        for LOOM_record in Loom_file.records.CNAME_records.records:
+            if LOOM_record in self.records.CNAME_records.records:
+                continue
+            else:
+                for DNS_record in self.records.CNAME_records.records:
+                    if LOOM_record.alias == DNS_record.alias:
+                        records_same_alias += [LOOM_record]
+                        
+        # Print the content of the lists    
+        print(f"Entries that are in the LOOM file but not in the DNS file :")
+        for record in records_not_in_DNS:
+            print(record.show())
+            
+        print(f"Entries that have the same alias but not the same target :")
+        for record in records_same_alias:
+            print(record.show())
+            
+        # Ask the user if the DNS entries should be updated to match the LOOM entries.
+        for record in records_not_in_DNS:
+            print("\n", "-" * 80, "\n")
+            if record in records_same_alias:
+                print(f"file: {self.name}\n")
+                print(f"The DNS entry that makes the alias {record.alias} point to the target {record.target} in the LOOM file, is not present in the local DNS file {self.name}.")
+                print(f"But, the following entry/s is/are present in the local DNS resovles the same alias.\n")
+                
+                for line in self.records.CNAME_records.records:
+                    if line.alias == record.alias:
+                        line.show()
+                        
+                for attempt in range(3):
+                    answer = input(f"Would you like to replace that entry in the local DNS file with the entry in the LOOM file ? (y/N) : ")
+                    if answer.lower() == "y":
+                        logger.info(f"replacing the entry in local DNS file {self.name} ...")
+                        for line in self.records.CNAME_records.records:
+                            if line.alias == record.alias:
+                                self.records.CNAME_records.remove_record(line)
+                        self.records.CNAME_records.add_record(record)
+                        break
+                    elif answer.lower() == "n" or answer == "":
+                        logger.info(f"The entry will not be added to the local DNS file {self.name}.")
+                        break
+                    else:
+                        print(f"invalide input, please try again.")
+                        
+            elif record not in records_same_alias:
+                print(f"file: {self.name}\n")
+                print(f"The DNS entry that makes the alias {record.alias} point to the target {record.target} in the LOOM file, is not present in the local DNS file {self.name}.")
+                print(f"See the entry below. \n")
+                record.show()
+                
+                for attempt in range(3):
+                    answer = input(f"Would you like to add that entry to the local DNS file {self.name} ? (y/N) : ")
+                    if answer.lower() == "y":
+                        logger.info(f"Adding the entry to the local DNS file {self.name} ...")
+                        self.records.CNAME_records.add_record(record)
+                        break
+                    elif answer.lower() == "n" or answer == "":
+                        logger.info(f"The entry will not be added to the local DNS file {self.name}.")
+                        break
+                    else:
+                        print(f"invalide input, please try again.")
+        
+        
+    def compare_PTR_to_LOOM(self, Loom_file: LOOM_file):
+        
+        self.records.trim()
+        self.LOOM_file.records.trim()
+        
+        # Entries that are in the LOOM file but not in the DNS file
+        records_not_in_DNS = []
+        
+        for LOOM_record in Loom_file.records.PTR_records.records:
+            if LOOM_record not in self.records.PTR_records.records:
+                records_not_in_DNS += [LOOM_record]          
+                
+        # Entries that have the same ip address but not the same server name
+        records_same_ip = []
+        
+        for LOOM_record in Loom_file.records.PTR_records.records:
+            if LOOM_record in self.records.PTR_records.records:
+                continue
+            else:
+                for DNS_record in self.records.PTR_records.records:
+                    if LOOM_record.ip == DNS_record.ip:
+                        records_same_ip += [LOOM_record]
+                        
+        # Entries that have the same server name but not the same ip address
+        records_same_server_name = []
+        
+        for LOOM_record in Loom_file.records.PTR_records.records:
+            if LOOM_record in self.records.PTR_records.records:
+                continue
+            else:
+                for DNS_record in self.records.PTR_records.records:
+                    if LOOM_record.domain_name == DNS_record.domain_name:
+                        records_same_server_name += [LOOM_record]
+                        
+        # Print the content of the lists
+        print(f"Entries that are in the LOOM file but not in the DNS file :")
+        for record in records_not_in_DNS:
+            print(record.show())
+            
+        print(f"Entries that have the same ip address but not the same server name :")
+        for record in records_same_ip:
+            print(record.show())
+            
+        print(f"Entries that have the same server name but not the same ip address :")
+        for record in records_same_server_name:
+            print(record.show())
+            
+        # Ask the user if the DNS entries should be updated to match the LOOM entries.
+        for record in records_not_in_DNS:
+            print("\n", "-" * 80, "\n")
+            if record in records_same_ip:
+                print(f"file: {self.name}\n")
+                print(f"The DNS entry that translates the ip address {record.ip} to the domain name {record.domain_name} in the LOOM file, is not present in the local DNS file {self.name}.")
+                print("But, the following entry/s is/are present in the local DNS file and translate the same ip address\n")
+                
+                for line in self.records.PTR_records.records:
+                    if line.ip == record.ip:
+                        line.show()
+                        
+                for attempt in range(3):
+                    answer = input(f"Would you like to replace that entry in the local DNS file with the entry in the LOOM file ? (y/N) : ")
+                    if answer.lower() == "y":
+                        logger.info(f"replacing the entry in local DNS file {self.name} ...")
+                        for line in self.records.PTR_records.records:
+                            if line.ip == record.ip:
+                                self.records.PTR_records.remove_record(line)
+                        self.records.PTR_records.add_record(record)
+                        break
+                    elif answer.lower() == "n" or answer == "":
+                        logger.info(f"The entry will not be added to the local DNS file {self.name}.")
+                        break
+                    else:
+                        print(f"invalide input, please try again.")
+                        
+            elif record in records_same_server_name:
+                print(f"file: {self.name}\n")
+                print(f"The DNS entry that translates the ip address {record.ip} to the domain name {record.domain_name} in the LOOM file, is not present in the local DNS file {self.name}.")
+                print(f"But, the following entr/s is/are present in the local DNS resovles the same server name.\n")
+                
+                for line in self.records.PTR_records.records:
+                    if line.domain_name == record.domain_name:
+                        line.show()
+                        
+                for attempt in range(3):
+                    answer = input(f"Would you like to replace that entry in the local DNS file with the entry in the LOOM file ? (y/N) : ")
+                    if answer.lower() == "y":
+                        logger.info(f"replacing the entry in local DNS file {self.name} ...")
+                        for line in self.records.PTR_records.records:
+                            if line.domain_name == record.domain_name:
+                                self.records.PTR_records.remove_record(line)
+                        self.records.PTR_records.add_record(record)
+                        break
+                    elif answer.lower() == "n" or answer == "":
+                        logger.info(f"The entry will not be added to the local DNS file {self.name}.")
+                        break
+        
+            elif record not in records_same_ip and record not in records_same_server_name:
+                print(f"file: {self.name}\n")
+                print(f"The DNS entry that translates the ip address {record.ip} to the domain name {record.domain_name} in the LOOM file, is not present in the local DNS file {self.name}.")
+                print("See the entry below. \n")
+                record.show()
+                
+                for attempt in range(3):
+                    answer = input(f"Would you like to add that entry to the local DNS file {self.name} ? (y/N) : ")
+                    if answer.lower() == "y":
+                        logger.info(f"Adding the entry to the local DNS file {self.name} ...")
+                        self.records.PTR_records.add_record(record)
+                        break
+                    elif answer.lower() == "n" or answer == "":
+                        logger.info(f"The entry will not be added to the local DNS file {self.name}.")
+                        break
+                    else:
+                        print(f"invalide input, please try again.")
+                        
+        print("\n", "-" * 80, "\n")
+        # Show the the records of the DNS file
+        self.records.show_records()       
+    
                                                                  
     def beautify_DNS_entries(self):
         self.records.beautify()
