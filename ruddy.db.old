@@ -23,5 +23,5 @@ ruddyserv02b IN      A       192.168.10.20
 ruddyserv03b IN      A       192.168.10.30
 ruddyserv09b IN      A       192.168.10.90
 wab IN      CNAME       example.fr
-web IN      CNAME       example.fr
+web IN      CNAME       no.fr
 www IN      CNAME       example.fr

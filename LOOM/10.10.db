@@ -1,6 +1,6 @@
-1.10 IN   PTR   ruddyserv01b.production.test.
+1.10 IN   PTR   ruddyserv01b.production.test.;it should ask for 1111111 and list all of the other servers that 
 2.10 IN   PTR   ruddyserv02b.production.test.
-3.10 IN   PTR   ruddyserv03b.production.test.
+3.10 IN   PTR   ruddyserv03b.production.test.;it should ask for 1111111 and list all of the other servers that 
 3.9 IN   PTR   ruddyserv09b.production.test.
 
 
