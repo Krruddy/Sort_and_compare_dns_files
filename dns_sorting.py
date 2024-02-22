@@ -230,6 +230,8 @@ class A_records(Records):
         self.records = [x for x in self.records if not (x.target in seen or seen.add(x.target))]
         
     def sort(self):
+        for record in self.records:
+            print(record.target)
         self.records.sort(key=lambda x: list(map(int, x.target.split('.'))))
 
     def output_lines(self):
@@ -380,7 +382,8 @@ class LOOM_file:
                     if self.find_ip_in_line(line) != None: # A, AAAA
                         if line.split()[2] == "A":
                             
-                            current_record = A_record(server_name = line.split()[0], class_ = line.split()[1], type_ = line.split()[2], target = line.split()[3])
+                            line_without_comment = self.__seperate_records_and_comments(line)
+                            current_record = A_record(server_name = line_without_comment.split()[0], class_ = line_without_comment.split()[1], type_ = line_without_comment.split()[2], target = line_without_comment.split()[3])
                             
                             self.records.A_records.add_record(current_record)
                             
@@ -388,14 +391,16 @@ class LOOM_file:
                             pass
                     elif self.find_reverse_ip_in_line(line) != None: # PTR
                         if line.split()[2] == "PTR":
-                            print(f"PTR record {line}")
-                            current_record = PTR_record(ip = line.split()[0], class_ = line.split()[1], type_ = line.split()[2], domain_name = line.split()[3])
+                            
+                            line_without_comment = self.__seperate_records_and_comments(line)
+                            current_record = PTR_record(ip = line_without_comment.split()[0], class_ = line_without_comment.split()[1], type_ = line_without_comment.split()[2], domain_name = line_without_comment.split()[3])
                             self.records.PTR_records.add_record(current_record)
                         
                     elif len(line.split()) >= 4: # Other records
                         if line.split()[2] == "CNAME":
                             
-                            current_record = CNAME_record(alias = line.split()[0], class_ = line.split()[1], type_ = line.split()[2], target = line.split()[3])
+                            line_without_comment = self.__seperate_records_and_comments(line)
+                            current_record = CNAME_record(alias = line_without_comment.split()[0], class_ = line_without_comment.split()[1], type_ = line_without_comment.split()[2], target = line_without_comment.split()[3])
                             self.records.CNAME_records.add_record(current_record)
                         elif line.split()[2] == "MX":
                             pass
@@ -410,6 +415,19 @@ class LOOM_file:
     def find_reverse_ip_in_line(self, line: str, ip_pattern = r"\d{1,3}\.\d{1,3}"):
         match = re.search(ip_pattern, line)
         return match
+
+    def __seperate_records_and_comments(self, line: str):
+        
+        record_and_comment = line.split(";")
+        
+        #print comment then print record
+        print(f"comment : {record_and_comment}")
+        
+        if len(record_and_comment) == 1:
+            return record_and_comment[0]
+        else:
+            comment = record_and_comment[1] #unused for now
+            return record_and_comment[0]
 
     def show_records(self):
         self.records.show_records()
@@ -481,6 +499,7 @@ class DNS_file:
     def __set_list_of_DNS_records(self, file_content: list):
         
         for line in file_content.copy():
+            
             # Empty lines
             if len(line.split()) > 0:
                 # Comments
@@ -488,7 +507,8 @@ class DNS_file:
                     if self.find_ip_in_line(line) != None: # A, AAAA
                         if line.split()[2] == "A":
                             
-                            current_record = A_record(server_name = line.split()[0], class_ = line.split()[1], type_ = line.split()[2], target = line.split()[3])                  
+                            line_without_comment = self.__seperate_records_and_comments(line)
+                            current_record = A_record(server_name = line_without_comment.split()[0], class_ = line_without_comment.split()[1], type_ = line_without_comment.split()[2], target = line_without_comment.split()[3])                  
                             self.records.A_records.add_record(current_record)
                             file_content.remove(line)
                             
@@ -497,14 +517,17 @@ class DNS_file:
                     elif self.find_reverse_ip_in_line(line) != None: # PTR
                         if line.split()[2] == "PTR":
 
-                            current_record = PTR_record(ip = line.split()[0], class_ = line.split()[1], type_ = line.split()[2], domain_name = line.split()[3])
+                            line_without_comment = self.__seperate_records_and_comments(line)
+                            current_record = PTR_record(ip = line_without_comment.split()[0], class_ = line_without_comment.split()[1], type_ = line_without_comment.split()[2], domain_name = line_without_comment.split()[3])
                             self.records.PTR_records.add_record(current_record)
                             file_content.remove(line)
                         
                     elif len(line.split()) >= 4: # Other records
                         print(line.split()[2])
                         if line.split()[2] == "CNAME":
-                            current_record = CNAME_record(alias = line.split()[0], class_ = line.split()[1], type_ = line.split()[2], target = line.split()[3])
+                            
+                            line_without_comment = self.__seperate_records_and_comments(line)
+                            current_record = CNAME_record(alias = line_without_comment.split()[0], class_ = line_without_comment.split()[1], type_ = line_without_comment.split()[2], target = line_without_comment.split()[3])
                             self.records.CNAME_records.add_record(current_record)
                             file_content.remove(line)
 
@@ -523,6 +546,19 @@ class DNS_file:
         match = re.search(ip_pattern, line)
         return match
 
+    def __seperate_records_and_comments(self, line: str):
+        
+        record_and_comment = line.split(";")
+        
+        #print comment then print record
+        print(f"comment : {record_and_comment}")
+        
+        if len(record_and_comment) == 1:
+            return record_and_comment[0]
+        else:
+            comment = record_and_comment[1] #unused for now
+            return record_and_comment[0]
+            
     def __set_comments(self, file_content: list):
         return 0
    
@@ -592,10 +628,8 @@ class DNS_file:
         if os.path.isfile(f"{self.name}.tmp"):
             os.rename(f"{self.name}", f"{self.name}.old")
             os.rename(f"{self.name}.tmp", f"{self.name}")
-            print('')
         else:
             os.rename(f"{self.name}._after_LOOM.tmp", f"{self.name}")
-            print('')
 
     def compare_to_LOOM(self, Loom_file: LOOM_file):
         
@@ -801,7 +835,6 @@ class DNS_file:
                     else:
                         print(f"invalide input, please try again.")
         
-        
     def compare_PTR_to_LOOM(self, Loom_file: LOOM_file):
         
         self.records.trim()
@@ -919,7 +952,6 @@ class DNS_file:
         print("\n", "-" * 80, "\n")
         # Show the the records of the DNS file
         self.records.show_records()       
-    
                                                                  
     def beautify_DNS_entries(self):
         self.records.beautify()
