@@ -57,55 +57,12 @@ logger.addHandler(handler)
 # Set the logging level
 logger.setLevel(logging.INFO)
 
-class Comment:
-    
-    def __init__(self, comment: str, record = None):
-        self.comment = comment
-        self._record = record
-      
-    def show(self):
-        print(self.comment)
-        print("\n")
-    
-    def get(self):
-        return self.comment
-    
-    def set(self, comment: str):
-        self.comment = comment
-      
-    @property
-    def record(self):
-        return self._record
-    
-    @record.setter
-    def record(self, record):
-        if isinstance(record, Record):
-            self._record = record
-        if record == None:
-            self._record = None
-        else:
-            raise TypeError("The record must be an instance of the class Record.")
-    
-class Comments:
-    
-    def __init__(self):
-        self.comments = []
-        
-    def add_comment(self, comment: Comment):
-        self.comments.append(comment)
-        
-    def remove_comment(self, comment: Comment):
-        self.comments.remove(comment)
-        
-    def show_comments(self):
-        for comment in self.comments:
-            comment.show()
- 
 class Record:
-    def __init__ (self, TTL: int = None, class_: str = "IN", type_: str = None, comment= None ):
+    def __init__ (self, TTL: int = None, class_: str = "IN", type_: str = None, comment: str = ""):
         self.TTL = TTL
         self.class_ = class_
         self.type_ = type_
+        self.comment = comment
      
     def trim(self):
         self.class_ = self.class_.strip()
@@ -117,19 +74,8 @@ class Record:
         print(f"comment : {self.comment}")
         print(f"type : {self.type_}")
      
-    @property
-    def comment(self):
-        return self._comment
-    
-    @comment.setter
-    def comment(self, comment):
-        if isinstance(comment, Comment):
-            self._comment = comment
-        else:
-            raise TypeError("The comment must be an instance of the class Comment.")
-     
 class A_record(Record):
-    def __init__ (self, server_name: str, TTL: int = None, class_: str = "IN", type_: str = "A", target: str = None, comment = None):
+    def __init__ (self, server_name: str, TTL: int = None, class_: str = "IN", type_: str = "A", target: str = None, comment: str = ""):
         super().__init__(TTL, class_, type_, comment)
         self.server_name = server_name
         self.target = target
@@ -164,7 +110,7 @@ class A_record(Record):
         print(f"target : {self.target}\n")
 
 class CNAME_record(Record):
-    def __init__ (self, alias: str, TTL: int = None, class_: str = "IN", type_: str = "CNAME", target: str = None, comment = None):
+    def __init__ (self, alias: str, TTL: int = None, class_: str = "IN", type_: str = "CNAME", target: str = None, comment: str = ""):
         super().__init__(TTL, class_, type_, comment)
         self.alias = alias
         self.target = target
@@ -199,7 +145,7 @@ class CNAME_record(Record):
         print(f"target : {self.target}\n")
                 
 class PTR_record(Record):
-    def __init__ (self, ip: str, TTL: int = None, class_: str = "IN", type_: str = "PTR", domain_name: str = None, comment = None):
+    def __init__ (self, ip: str, TTL: int = None, class_: str = "IN", type_: str = "PTR", domain_name: str = None, comment: str = ""):
         super().__init__(TTL, class_, type_, comment)
         self.ip = ip
         self.domain_name = domain_name
@@ -293,6 +239,8 @@ class A_records(Records):
         for record in self.records:
             lines += [record.server_name + record.class_ + record.type_ + record.target + "\n"]
         return lines
+    
+
 class CNAME_records(Records):
       
     def __init__(self):
@@ -391,8 +339,19 @@ class DNS_records:
             lines.extend(record_type.output_lines())
         
         return lines
-
-   
+            
+class Comments:
+    def __init__(self):
+        self.comments = []
+    def add_comment(self, comment: str):
+        self.comments += [comment]
+    def remove_comment(self, comment: str):
+        self.comments.remove(comment)
+    def show_comments(self):
+        for comment in self.comments:
+            print(comment)
+            print("\n")
+        
 class LOOM_file:
     
     def __init__(self, path: str, DNS_file = None):
@@ -498,7 +457,7 @@ class DNS_file:
         self.space_before_incre_value = self.__find_space_before_incre_value(self.file_content[2])
         self.incre_value = self.__find_incre_value(self.file_content[2])
         self.records = DNS_records(self.is_reverse)
-        self.__set_list_of_DNS_records(self.file_content)
+        self.list_of_DNS_records = self.__set_list_of_DNS_records(self.file_content)
         self._LOOM_file = None
         print("#"*300)
         self.records.show_records()
@@ -876,7 +835,6 @@ class DNS_file:
                     else:
                         print(f"invalide input, please try again.")
         
-               
     def compare_PTR_to_LOOM(self, Loom_file: LOOM_file):
         
         self.records.trim()
@@ -995,7 +953,6 @@ class DNS_file:
         # Show the the records of the DNS file
         self.records.show_records()       
                                                                  
-                                                                  
     def beautify_DNS_entries(self):
         self.records.beautify()
     
