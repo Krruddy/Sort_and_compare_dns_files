@@ -169,6 +169,7 @@ class A_record(Record):
         print(f"target : {self.target}\n")
 
 class CNAME_record(Record):
+  
     def __init__ (self, alias: str, TTL: int = None, class_: str = "IN", type_: str = "CNAME", target: str = None, comment = None):
         super().__init__(TTL, class_, type_, comment)
         self.alias = alias
@@ -326,7 +327,10 @@ class CNAME_records(Records):
     def output_lines(self):
         lines = []
         for record in self.records:
-            lines += [record.alias + record.class_ + record.type_ + record.target + "\n"]
+            if record.comment != None:
+                lines += [record.alias + record.class_ + record.type_ + record.target + " ; " + record.comment.get() + "\n"]
+            else:     
+                lines += [record.alias + record.class_ + record.type_ + record.target + "\n"]
         return lines
 
 class PTR_records(Records):
@@ -353,7 +357,10 @@ class PTR_records(Records):
     def output_lines(self):
         lines = []
         for record in self.records:
-            lines += [record.ip + record.class_ + record.type_ + record.domain_name + "\n"]
+            if record.comment != None:
+                lines += [record.ip + record.class_ + record.type_ + record.domain_name + " ; " + record.comment.get() + "\n"]
+            else:
+                lines += [record.ip + record.class_ + record.type_ + record.domain_name + "\n"]
         return lines      
       
 class DNS_records:
@@ -603,7 +610,7 @@ class DNS_file:
             comment = None
         else:
             record = record_and_comment[0]
-            comment = Comment(record_and_comment[1].replace("\n", ""))
+            comment = Comment(record_and_comment[1].replace("\n", "").strip())
         
         #print comment then print record
         print(f"comment : {record_and_comment}")
