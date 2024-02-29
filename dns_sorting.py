@@ -3,6 +3,9 @@ import os
 import sys
 import logging
 import errno
+import dns.zone
+import dns.rdatatype
+import dns.rdataclass
 
 manual_LOOM_path = "/home/ruddy/github/Sort_and_compare_dns_files/LOOM"
 
@@ -101,8 +104,6 @@ class Comments:
         for comment in self.comments:
             comment.show()
 
-
- 
 class Record:
     
     def __init__ (self, TTL: int = None, class_: str = "IN", type_: str = None, comment= None ):
@@ -131,7 +132,72 @@ class Record:
             self._comment = comment
         else:
             raise TypeError("The comment must be an instance of the class Comment.")
-     
+
+class SOA_record(Record):
+    
+    def __init__ (self, primary_name_server: str, hostmaster: str, serial: int, refresh: int, retry: int, expire: int, minimum_ttl: int):
+        super().__init__(minimum_ttl, "IN", "SOA")
+        self.primary_name_server = primary_name_server
+        self.hostmaster = hostmaster
+        self.serial = serial
+        self.refresh = refresh
+        self.retry = retry
+        self.expire = expire
+        self.minimum_ttl = minimum_ttl
+        
+    def increment_serial(self):
+        self.serial += 1
+        
+    def show(self):
+        super().show()
+        print(f"primary name server : {self.primary_name_server}")
+        print(f"hostmaster : {self.hostmaster}")
+        print(f"serial : {self.serial}")
+        print(f"refresh : {self.refresh}")
+        print(f"retry : {self.retry}")
+        print(f"expire : {self.expire}")
+        print(f"minimum TTL : {self.minimum_ttl}\n")
+        
+    def generate_output(self):
+        
+        line = f"""
+        @       IN     SOA     {self.primary_name_server}. {self.hostmaster}. (
+                {self.serial}
+                {self.refresh}
+                {self.retry}
+                {self.expire}
+                {self.minimum_ttl}
+        )
+        """
+        
+        return line
+
+class NS_record(Record):
+        
+    def __init__ (self, server_name: str, TTL: int = None, class_: str = "IN", type_: str = "NS", target: str = None, comment = None):
+        super().__init__(TTL, class_, type_, comment)
+        self.server_name = server_name
+        self.target = target
+        
+                            
+    # Trim every attribute of the class
+    def trim(self):
+        super().trim()
+        self.server_name = self.server_name.strip()
+        self.target = self.target.strip()
+
+    def show(self):
+        super().show()
+        print(f"server name : {self.server_name}")
+        print(f"target : {self.target}\n")
+        
+    
+    def generate_output(self):
+        if self.comment == None:
+            return f"{self.TTL} {self.class_} {self.type_} {self.server_name}."
+        else:
+            return f"{self.TTL} {self.class_} {self.type_} {self.server_name}. ; {self.comment.get()}"
+
 class A_record(Record):
     
     def __init__ (self, server_name: str, TTL: int = None, class_: str = "IN", type_: str = "A", target: str = None, comment = None):
@@ -270,6 +336,63 @@ class Records:
     
     def number_of_records(self):
         return len(self.records)
+
+class SOA_records(Records):
+    
+    def __init__(self):
+        super().__init__()
+        
+        def beautify(self):
+            if len(self.records) != 0:
+                longest_element = max([len(record.primary_name_server) for record in self.records])
+                for record in self.records:
+                    added_spaces = longest_element - len(record.primary_name_server)+1
+                    record.primary_name_server += " " * added_spaces
+                    record.class_ += " " * 6
+                    record.type_ += " " * 7
+                    
+        def remove_duplicates(self):
+            seen = set()
+            self.records = [x for x in self.records if not (x.primary_name_server in seen or seen.add(x.primary_name_server))]
+            
+        def sort(self):
+            self.records.sort(key=lambda x: x.primary_name_server)
+            
+        def output_lines(self):
+            lines = []
+            for record in self.records:
+                lines += [record.generate_output() + "\n"]
+            return lines
+
+class NS_records(Records):
+        
+        def __init__(self):
+            super().__init__()
+            
+        def beautify(self):
+            if len(self.records) != 0:
+                longest_element = max([len(record.server_name) for record in self.records])
+                for record in self.records:
+                    added_spaces = longest_element - len(record.server_name)+1
+                    record.server_name += " " * added_spaces
+                    record.class_ += " " * 6
+                    record.type_ += " " * 7
+        
+        def remove_duplicates(self):
+            seen = set()
+            self.records = [x for x in self.records if not (x.target in seen or seen.add(x.target))]
+            
+        def sort(self):
+            self.records.sort(key=lambda x: x.target)
+    
+        def output_lines(self):
+            lines = []
+            for record in self.records:
+                if record.comment != None:
+                    lines += [record.server_name + record.class_ + record.type_ + record.target + " ; " + record.comment.get() + "\n"]
+                else:
+                    lines += [record.server_name + record.class_ + record.type_ + record.target + "\n"]
+            return lines        
             
 class A_records(Records):
   
@@ -302,6 +425,7 @@ class A_records(Records):
             else:
                 lines += [record.server_name + record.class_ + record.type_ + record.target + "\n"]
         return lines
+
 class CNAME_records(Records):
       
     def __init__(self):
@@ -367,6 +491,8 @@ class DNS_records:
  
     def __init__(self, reverse: bool = False):
         self.is_reverse = reverse
+        self.SOA_records = SOA_records()
+        self.NS_records = NS_records()
         self.A_records = A_records()
         self.CNAME_records = CNAME_records()
         self.PTR_records = PTR_records()
@@ -549,8 +675,51 @@ class DNS_file:
         else:
             return int(incre_value[0])
 
+
+    def remove_lines_with_pattern(self, file_content, pattern):
+        try:
+            lines = file_content
+            filtered_lines = [line for line in lines if pattern not in line]
+            return '\n'.join(filtered_lines)
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return None
+
     # a function named __set_list_of_DNS_records that takes self, the file content and returns a list of DNS entries    
     def __set_list_of_DNS_records(self, file_content: list):
+        
+        modified_file_content = self.remove_lines_with_pattern(file_content, "$TTL")
+        zone = dns.zone.from_text(modified_file_content, origin="", relativize=False, check_origin=False) 
+        
+        for name, node in zone.nodes.items():
+            for rdataset in node.rdatasets:
+                for rdata in rdataset:
+                    if rdataset.rdtype == 1: # A
+                        current_record = A_record(server_name = name.to_text(), class_ = dns.rdataclass.to_text(rdataset.rdclass), type_ = dns.rdatatype.to_text(rdataset.rdtype), target = rdata.to_text())
+                        current_record.show()
+                        self.records.A_records.add_record(current_record)
+                    elif rdataset.rdtype == 2: # NS
+                        current_record = NS_record(server_name = name.to_text(), class_ = dns.rdataclass.to_text(rdataset.rdclass), type_ = dns.rdatatype.to_text(rdataset.rdtype), target = rdata.to_text())
+                        current_record.show()
+                        self.records.NS_records.add_record(current_record)
+                    elif rdataset.rdtype == 5: # CNAME
+                        current_record = CNAME_record(alias = name.to_text(), class_ = dns.rdataclass.to_text(rdataset.rdclass), type_ = dns.rdatatype.to_text(rdataset.rdtype), target = rdata.to_text())
+                        current_record.show()
+                        self.records.CNAME_records.add_record(current_record)
+                    elif rdataset.rdtype == 6: # SOA
+                        current_record = SOA_record(primary_name_server = rdata.mname.to_text(), hostmaster = rdata.rname.to_text(), serial = rdata.serial, refresh = rdata.refresh, retry = rdata.retry, expire = rdata.expire, minimum_ttl = rdata.minimum)
+                        current_record.show()
+                        self.records.SOA_records.add_record(current_record)
+                    elif rdataset.rdtype == 12: # PTR
+                        current_record = PTR_record(ip = name.to_text(), class_ = dns.rdataclass.to_text(rdataset.rdclass), type_ = dns.rdatatype.to_text(rdataset.rdtype), domain_name = rdata.to_text())
+                        current_record.show()
+                        self.records.PTR_records.add_record(current_record)
+
+
+        
+        
+        
+        
         
         for line in file_content.copy():
             
