@@ -714,51 +714,6 @@ class DNS_file:
                         current_record = PTR_record(ip = name.to_text(), class_ = dns.rdataclass.to_text(rdataset.rdclass), type_ = dns.rdatatype.to_text(rdataset.rdtype), domain_name = rdata.to_text())
                         current_record.show()
                         self.records.PTR_records.add_record(current_record)
-
-
-        
-        
-        
-        
-        
-        for line in file_content.copy():
-            
-            # Empty lines
-            if len(line.split()) > 0:
-                # Comments
-                if line.strip()[0] != ";":
-                    if self.find_ip_in_line(line) != None: # A, AAAA
-                        if line.split()[2] == "A":
-                            
-                            line_without_comment, comment = self.__seperate_records_and_comments(line)
-                            
-                            current_record = A_record(server_name = line_without_comment.split()[0], class_ = line_without_comment.split()[1], type_ = line_without_comment.split()[2], target = line_without_comment.split()[3], comment = comment)                  
-                            self.records.A_records.add_record(current_record)
-                            file_content.remove(line)
-                            
-                        elif line.split()[2] == "AAAA":
-                            pass
-                    elif self.find_reverse_ip_in_line(line) != None: # PTR
-                        if line.split()[2] == "PTR":
-
-                            line_without_comment, comment = self.__seperate_records_and_comments(line)
-                            current_record = PTR_record(ip = line_without_comment.split()[0], class_ = line_without_comment.split()[1], type_ = line_without_comment.split()[2], domain_name = line_without_comment.split()[3], comment = comment)
-                            self.records.PTR_records.add_record(current_record)
-                            file_content.remove(line)
-                        
-                    elif len(line.split()) >= 4: # Other records
-                        print(line.split()[2])
-                        if line.split()[2] == "CNAME":
-                            
-                            line_without_comment, comment = self.__seperate_records_and_comments(line)
-                            current_record = CNAME_record(alias = line_without_comment.split()[0], class_ = line_without_comment.split()[1], type_ = line_without_comment.split()[2], target = line_without_comment.split()[3], comment = comment)
-                            self.records.CNAME_records.add_record(current_record)
-                            file_content.remove(line)
-
-                        elif line.split()[2] == "MX":
-                            pass
-                    else:
-                        pass #raise UnkownRecordType
                                                             
     # a function named find_ip_in_line that determines if there is an ip address in the line and returns the match
     def find_ip_in_line(self, line: str, ip_pattern = r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?=[ ;]|$)"):
