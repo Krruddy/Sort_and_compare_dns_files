@@ -29,3 +29,5 @@ for name, node in zone.nodes.items():
     for rdataset in node.rdatasets:
         for rdata in rdataset:
             print(f"{name} {rdataset.rdclass} {rdataset.rdtype} {rdataset.ttl} {rdata}")
+            
+            

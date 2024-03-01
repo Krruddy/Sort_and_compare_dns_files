@@ -640,7 +640,6 @@ class DNS_file:
         self.records = DNS_records(self.is_reverse)
         self.__set_list_of_DNS_records(self.file_content)
         self._LOOM_file = None
-        print("#"*300)
         self.records.show_records()
 
     # a function named __find_file_type that takes the name of the file and returns the type of file (standard DNS or reverse DNS)      
@@ -674,7 +673,6 @@ class DNS_file:
             return int(incre_value[0])
         else:
             return int(incre_value[0])
-
 
     def remove_lines_with_pattern(self, file_content, pattern):
         try:
@@ -714,16 +712,6 @@ class DNS_file:
                         current_record = PTR_record(ip = name.to_text(), class_ = dns.rdataclass.to_text(rdataset.rdclass), type_ = dns.rdatatype.to_text(rdataset.rdtype), domain_name = rdata.to_text())
                         current_record.show()
                         self.records.PTR_records.add_record(current_record)
-                                                            
-    # a function named find_ip_in_line that determines if there is an ip address in the line and returns the match
-    def find_ip_in_line(self, line: str, ip_pattern = r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?=[ ;]|$)"):
-        match = re.search(ip_pattern, line)
-        return match
-    
-    # a function named find_reverse_ip_in_line that determines if there is a reverse ip address in the line and returns the match
-    def find_reverse_ip_in_line(self, line: str, ip_pattern = r"\d{1,3}\.\d{1,3}"):
-        match = re.search(ip_pattern, line)
-        return match
 
     def __seperate_records_and_comments(self, line: str):
         
@@ -743,7 +731,12 @@ class DNS_file:
                        
     # a function named increment_incre_value that increments the value to increment
     def increment_incre_value(self):
-        self.incre_value += 1
+        if self.records.SOA_records.number_of_records() > 0:
+            self.records.SOA_records.records[0].increment_serial()
+        else:
+            logger.error(f"No SOA record found in {self.name}.")
+            logger.error(f"Exiting the program.")
+            sys.exit(errno.ENOENT)
     
     # a function named delete_duplicate_entries that deletes the duplicate entries
     def delete_duplicate_entries(self):
