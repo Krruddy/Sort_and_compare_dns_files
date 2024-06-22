@@ -112,10 +112,10 @@ class DNS_records:
 class LOOMFile:
 
     def __init__(self, path: str, DNS_file=None):
-        if os.path.isfile(path + "/" + DNS_file.name):
+        if os.path.isfile(path + "/" + DNS_file.path):
             self._DNS_file = DNS_file
             self.path = path
-            self.name = self._DNS_file.name
+            self.name = self._DNS_file.path
             self.is_reverse = self._DNS_file.is_reverse
             self.file_content = self.__set_file_content(self.name, self.path)
             self.records = DNS_records()
@@ -762,10 +762,8 @@ if __name__ == "__main__":
     ## Initialize the path to the DNS files and to the LOOM directory
     arg_parser = ArgumentParser()
     args = arg_parser.parse_arguments()
-    files = args.files
-    loom = args.loom
-    files = [Path(file) for file in files]
-    loom = Path(loom)
+    files = [Path(file) for file in args.files]
+    loom = Path(args.loom)
 
     try:
         sorter = Sorter(files)
@@ -823,16 +821,16 @@ if __name__ == "__main__":
 
     # increments the value to increment, deletes the duplicate entries, sorts the DNS entries, reconstructs the file and replaces the old file with the new one
     for file in DNS_files:
-        logger.info(f"incrementing the value for {file.name} ...")
+        logger.info(f"incrementing the value for {file.path} ...")
         file.increment_incre_value()
-        logger.info(f"deleting the duplicate entries for {file.name} ...")
+        logger.info(f"deleting the duplicate entries for {file.path} ...")
         file.beautify_DNS_entries()
         file.delete_duplicate_entries()
-        logger.info(f"sorting the DNS entries for {file.name} ...")
+        logger.info(f"sorting the DNS entries for {file.path} ...")
         file.sort_DNS_entries()
-        logger.info(f"reconstructing the file {file.name} ...")
+        logger.info(f"reconstructing the file {file.path} ...")
         file.reconstruct_file()
-        logger.info(f"replacing the old file with the new one for {file.name} ...")
+        logger.info(f"replacing the old file with the new one for {file.path} ...")
         file.replace_file()
         print(f"-" * 80)
 
@@ -866,14 +864,14 @@ if __name__ == "__main__":
 
     for file in DNS_files:
         print(f"-" * 80)
-        print(f"Comparing the DNS file {file.name} with the LOOM file {file.LOOMFile.name} ...")
+        print(f"Comparing the DNS file {file.path} with the LOOM file {file.LOOMFile.name} ...")
         file.compare_to_LOOM(file.LOOMFile)
         file.beautify_DNS_entries()
-        logger.info(f"sorting the DNS entries for {file.name} ...")
+        logger.info(f"sorting the DNS entries for {file.path} ...")
         file.sort_DNS_entries()
-        logger.info(f"reconstructing the file {file.name} ...")
+        logger.info(f"reconstructing the file {file.path} ...")
         file.reconstruct_file()
-        logger.info(f"replacing the old file with the new one for {file.name} ...")
+        logger.info(f"replacing the old file with the new one for {file.path} ...")
         file.replace_file()
 
     logger.info("The program has finished running.")

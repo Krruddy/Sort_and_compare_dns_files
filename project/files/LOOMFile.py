@@ -10,10 +10,10 @@ from project.records.record.PTRRecord import PTRRecord
 class LOOMFile:
 
     def __init__(self, path: str, DNS_file=None):
-        if os.path.isfile(path + "/" + DNS_file.name):
+        if os.path.isfile(path + "/" + DNS_file.path):
             self._DNS_file = DNS_file
             self.path = path
-            self.name = self._DNS_file.name
+            self.name = self._DNS_file.path
             self.is_reverse = self._DNS_file.is_reverse
             self.file_content = self.__set_file_content(self.name, self.path)
             self.records = DNS_records()

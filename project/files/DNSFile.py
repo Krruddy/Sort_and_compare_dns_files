@@ -28,15 +28,16 @@ from project.records.records import NSRecords
 from project.records.records import PTRRecords
 from project.records.records import SOARecords
 from project.sorter.Sorter import Sorter
+from pathlib import Path
 
 
 class DNSFile:
     # The constructor takes the name of the file and sets the type of file, the file content, the space before the incrementation value, the incrementation value and the list of DNS entries.
-    def __init__(self, name: str):
+    def __init__(self, path: Path):
         self.logger = Logger()
-        self.name = name
-        self.is_reverse = self.__find_file_type(self.name)
-        self.file_content = self.__set_file_content(self.name)
+        self.path = path
+        self.is_reverse = self.__find_file_type(self.path)
+        self.file_content = self.__set_file_content(self.path)
         self.space_before_incre_value = self.__find_space_before_incre_value(self.file_content[2])
         self.incre_value = self.__find_incre_value(self.file_content[2])
         self.records = DNSRecords(self.is_reverse)
@@ -67,11 +68,11 @@ class DNSFile:
     def __find_incre_value(self, incre_value_line: str):
         incre_value = re.findall(r'\d+', incre_value_line)
         if len(incre_value) == 0:
-            self.logger.error(f"Could not find the value to increment in {self.name}.")
+            self.logger.error(f"Could not find the value to increment in {self.path}.")
             self.logger.error(f"Exiting the program.")
             sys.exit(errno.ENOENT)
         elif len(incre_value) > 1:
-            self.logger.warning(f"Found more than one value to increment in {self.name}.")
+            self.logger.warning(f"Found more than one value to increment in {self.path}.")
             return int(incre_value[0])
         else:
             return int(incre_value[0])
@@ -148,7 +149,7 @@ class DNSFile:
         if self.records.SOA_records.number_of_records() > 0:
             self.records.SOA_records.records[0].increment_serial()
         else:
-            self.logger.error(f"No SOA record found in {self.name}.")
+            self.logger.error(f"No SOA record found in {self.path}.")
             self.logger.error(f"Exiting the program.")
             sys.exit(errno.ENOENT)
 
@@ -166,7 +167,7 @@ class DNSFile:
         reconstructed_line = self.__reconstruct_line(self.space_before_incre_value, self.incre_value)
 
         # Open the file
-        final_DNS_file = self.__create_tmp_file(f"{self.name}")
+        final_DNS_file = self.__create_tmp_file(f"{self.path}")
 
         # Add the lines to the file that aren't the DNS records
         for index, line in enumerate(self.file_content):
@@ -211,11 +212,11 @@ class DNSFile:
     # a function named replace_file that takes the name of the file and replaces the old file with the new one
     def replace_file(self):
         #os.remove(f"{self.name}")
-        if os.path.isfile(f"{self.name}.tmp"):
-            os.rename(f"{self.name}", f"{self.name}.old")
-            os.rename(f"{self.name}.tmp", f"{self.name}")
+        if os.path.isfile(f"{self.path}.tmp"):
+            os.rename(f"{self.path}", f"{self.path}.old")
+            os.rename(f"{self.path}.tmp", f"{self.path}")
         else:
-            os.rename(f"{self.name}._after_LOOM.tmp", f"{self.name}")
+            os.rename(f"{self.path}._after_LOOM.tmp", f"{self.path}")
 
     def compare_to_LOOM(self, Loom_file: LOOMFile):
 
@@ -276,9 +277,9 @@ class DNSFile:
         for record in records_not_in_DNS:
             print("\n", "-" * 80, "\n")
             if record in records_same_ip:
-                print(f"file: {self.name}\n")
+                print(f"file: {self.path}\n")
                 print(
-                    f"The DNS entry that translates the name server {record.server_name} to the ip address {record.target} in the LOOM file, is not present in the local DNS file {self.name}.")
+                    f"The DNS entry that translates the name server {record.server_name} to the ip address {record.target} in the LOOM file, is not present in the local DNS file {self.path}.")
                 print(
                     "But, the following entry/s is/are present in the local DNS file and translate to the same ip address. \n")
 
@@ -290,22 +291,22 @@ class DNSFile:
                     answer = input(
                         f"Would you like to replace that entry in the local DNS file with the entry in the LOOM file ? (y/N) : ")
                     if answer.lower() == "y":
-                        self.logger.info(f"replacing the entry in local DNS file {self.name} ...")
+                        self.logger.info(f"replacing the entry in local DNS file {self.path} ...")
                         for line in self.records.A_records.records:
                             if line.target == record.target:
                                 self.records.A_records.remove_record(line)
                         self.records.A_records.add_record(record)
                         break
                     elif answer.lower() == "n" or answer == "":
-                        self.logger.info(f"The entry will not be added to the local DNS file {self.name}.")
+                        self.logger.info(f"The entry will not be added to the local DNS file {self.path}.")
                         break
                     else:
                         print(f"invalide input, please try again.")
 
             elif record in records_same_server_name:
-                print(f"file: {self.name}\n")
+                print(f"file: {self.path}\n")
                 print(
-                    f"The DNS entry that makes the ip address {record.target} point to the server {record.server_name} in the LOOM file, is not present in the local DNS file {self.name}.")
+                    f"The DNS entry that makes the ip address {record.target} point to the server {record.server_name} in the LOOM file, is not present in the local DNS file {self.path}.")
                 print(f"But, the following entr/s is/are present in the local DNS resovles the same server name.\n")
 
                 for line in self.records.A_records.records:
@@ -316,33 +317,33 @@ class DNSFile:
                     answer = input(
                         f"Would you like to replace that entry in the local DNS file with the entry in the LOOM file ? (y/N) : ")
                     if answer.lower() == "y":
-                        self.logger.info(f"replacing the entry in local DNS file {self.name} ...")
+                        self.logger.info(f"replacing the entry in local DNS file {self.path} ...")
                         for line in self.records.A_records.records:
                             if line.server_name == record.server_name:
                                 self.records.A_records.remove_record(line)
                         self.records.A_records.add_record(record)
                         break
                     elif answer.lower() == "n" or answer == "":
-                        self.logger.info(f"The entry will not be added to the local DNS file {self.name}.")
+                        self.logger.info(f"The entry will not be added to the local DNS file {self.path}.")
                         break
                     else:
                         print(f"invalide input, please try again.")
 
             elif record not in records_same_ip and record not in records_same_server_name:
-                print(f"file: {self.name}\n")
+                print(f"file: {self.path}\n")
                 print(
-                    f"The DNS entry that makes the ip address {record.target} point to the server {record.server_name} in the LOOM file, is not present in the local DNS file {self.name}.")
+                    f"The DNS entry that makes the ip address {record.target} point to the server {record.server_name} in the LOOM file, is not present in the local DNS file {self.path}.")
                 print("See the entry below. \n")
                 record.show()
 
                 for attempt in range(3):
-                    answer = input(f"Would you like to add that entry to the local DNS file {self.name} ? (y/N) : ")
+                    answer = input(f"Would you like to add that entry to the local DNS file {self.path} ? (y/N) : ")
                     if answer.lower() == "y":
-                        self.logger.info(f"Adding the entry to the local DNS file {self.name} ...")
+                        self.logger.info(f"Adding the entry to the local DNS file {self.path} ...")
                         self.records.A_records.add_record(record)
                         break
                     elif answer.lower() == "n" or answer == "":
-                        self.logger.info(f"The entry will not be added to the local DNS file {self.name}.")
+                        self.logger.info(f"The entry will not be added to the local DNS file {self.path}.")
                         break
                     else:
                         print(f"invalide input, please try again.")
@@ -386,9 +387,9 @@ class DNSFile:
         for record in records_not_in_DNS:
             print("\n", "-" * 80, "\n")
             if record in records_same_alias:
-                print(f"file: {self.name}\n")
+                print(f"file: {self.path}\n")
                 print(
-                    f"The DNS entry that makes the alias {record.alias} point to the target {record.target} in the LOOM file, is not present in the local DNS file {self.name}.")
+                    f"The DNS entry that makes the alias {record.alias} point to the target {record.target} in the LOOM file, is not present in the local DNS file {self.path}.")
                 print(f"But, the following entry/s is/are present in the local DNS resovles the same alias.\n")
 
                 for line in self.records.CNAME_records.records:
@@ -399,33 +400,33 @@ class DNSFile:
                     answer = input(
                         f"Would you like to replace that entry in the local DNS file with the entry in the LOOM file ? (y/N) : ")
                     if answer.lower() == "y":
-                        self.logger.info(f"replacing the entry in local DNS file {self.name} ...")
+                        self.logger.info(f"replacing the entry in local DNS file {self.path} ...")
                         for line in self.records.CNAME_records.records:
                             if line.alias == record.alias:
                                 self.records.CNAME_records.remove_record(line)
                         self.records.CNAME_records.add_record(record)
                         break
                     elif answer.lower() == "n" or answer == "":
-                        self.logger.info(f"The entry will not be added to the local DNS file {self.name}.")
+                        self.logger.info(f"The entry will not be added to the local DNS file {self.path}.")
                         break
                     else:
                         print(f"invalide input, please try again.")
 
             elif record not in records_same_alias:
-                print(f"file: {self.name}\n")
+                print(f"file: {self.path}\n")
                 print(
-                    f"The DNS entry that makes the alias {record.alias} point to the target {record.target} in the LOOM file, is not present in the local DNS file {self.name}.")
+                    f"The DNS entry that makes the alias {record.alias} point to the target {record.target} in the LOOM file, is not present in the local DNS file {self.path}.")
                 print(f"See the entry below. \n")
                 record.show()
 
                 for attempt in range(3):
-                    answer = input(f"Would you like to add that entry to the local DNS file {self.name} ? (y/N) : ")
+                    answer = input(f"Would you like to add that entry to the local DNS file {self.path} ? (y/N) : ")
                     if answer.lower() == "y":
-                        self.logger.info(f"Adding the entry to the local DNS file {self.name} ...")
+                        self.logger.info(f"Adding the entry to the local DNS file {self.path} ...")
                         self.records.CNAME_records.add_record(record)
                         break
                     elif answer.lower() == "n" or answer == "":
-                        self.logger.info(f"The entry will not be added to the local DNS file {self.name}.")
+                        self.logger.info(f"The entry will not be added to the local DNS file {self.path}.")
                         break
                     else:
                         print(f"invalide input, please try again.")
@@ -481,9 +482,9 @@ class DNSFile:
         for record in records_not_in_DNS:
             print("\n", "-" * 80, "\n")
             if record in records_same_ip:
-                print(f"file: {self.name}\n")
+                print(f"file: {self.path}\n")
                 print(
-                    f"The DNS entry that translates the ip address {record.ip} to the domain name {record.domain_name} in the LOOM file, is not present in the local DNS file {self.name}.")
+                    f"The DNS entry that translates the ip address {record.ip} to the domain name {record.domain_name} in the LOOM file, is not present in the local DNS file {self.path}.")
                 print(
                     "But, the following entry/s is/are present in the local DNS file and translate the same ip address\n")
 
@@ -495,22 +496,22 @@ class DNSFile:
                     answer = input(
                         f"Would you like to replace that entry in the local DNS file with the entry in the LOOM file ? (y/N) : ")
                     if answer.lower() == "y":
-                        self.logger.info(f"replacing the entry in local DNS file {self.name} ...")
+                        self.logger.info(f"replacing the entry in local DNS file {self.path} ...")
                         for line in self.records.PTR_records.records:
                             if line.ip == record.ip:
                                 self.records.PTR_records.remove_record(line)
                         self.records.PTR_records.add_record(record)
                         break
                     elif answer.lower() == "n" or answer == "":
-                        self.logger.info(f"The entry will not be added to the local DNS file {self.name}.")
+                        self.logger.info(f"The entry will not be added to the local DNS file {self.path}.")
                         break
                     else:
                         print(f"invalide input, please try again.")
 
             elif record in records_same_server_name:
-                print(f"file: {self.name}\n")
+                print(f"file: {self.path}\n")
                 print(
-                    f"The DNS entry that translates the ip address {record.ip} to the domain name {record.domain_name} in the LOOM file, is not present in the local DNS file {self.name}.")
+                    f"The DNS entry that translates the ip address {record.ip} to the domain name {record.domain_name} in the LOOM file, is not present in the local DNS file {self.path}.")
                 print(f"But, the following entr/s is/are present in the local DNS resovles the same server name.\n")
 
                 for line in self.records.PTR_records.records:
@@ -521,31 +522,31 @@ class DNSFile:
                     answer = input(
                         f"Would you like to replace that entry in the local DNS file with the entry in the LOOM file ? (y/N) : ")
                     if answer.lower() == "y":
-                        self.logger.info(f"replacing the entry in local DNS file {self.name} ...")
+                        self.logger.info(f"replacing the entry in local DNS file {self.path} ...")
                         for line in self.records.PTR_records.records:
                             if line.domain_name == record.domain_name:
                                 self.records.PTR_records.remove_record(line)
                         self.records.PTR_records.add_record(record)
                         break
                     elif answer.lower() == "n" or answer == "":
-                        self.logger.info(f"The entry will not be added to the local DNS file {self.name}.")
+                        self.logger.info(f"The entry will not be added to the local DNS file {self.path}.")
                         break
 
             elif record not in records_same_ip and record not in records_same_server_name:
-                print(f"file: {self.name}\n")
+                print(f"file: {self.path}\n")
                 print(
-                    f"The DNS entry that translates the ip address {record.ip} to the domain name {record.domain_name} in the LOOM file, is not present in the local DNS file {self.name}.")
+                    f"The DNS entry that translates the ip address {record.ip} to the domain name {record.domain_name} in the LOOM file, is not present in the local DNS file {self.path}.")
                 print("See the entry below. \n")
                 record.show()
 
                 for attempt in range(3):
-                    answer = input(f"Would you like to add that entry to the local DNS file {self.name} ? (y/N) : ")
+                    answer = input(f"Would you like to add that entry to the local DNS file {self.path} ? (y/N) : ")
                     if answer.lower() == "y":
-                        self.logger.info(f"Adding the entry to the local DNS file {self.name} ...")
+                        self.logger.info(f"Adding the entry to the local DNS file {self.path} ...")
                         self.records.PTR_records.add_record(record)
                         break
                     elif answer.lower() == "n" or answer == "":
-                        self.logger.info(f"The entry will not be added to the local DNS file {self.name}.")
+                        self.logger.info(f"The entry will not be added to the local DNS file {self.path}.")
                         break
                     else:
                         print(f"invalide input, please try again.")

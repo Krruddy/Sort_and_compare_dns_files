@@ -1,5 +1,5 @@
 import logging
-from project.logger import LoggerMeta
+from project.logger.LoggerMeta import LoggerMeta
 from project.logger.CustomFormatter import CustomFormatter
 
 
@@ -19,10 +19,10 @@ class Logger(metaclass=LoggerMeta):
         self.logger.setLevel(logging.INFO)
 
     def info(self, string: str):
-        self.logger.info(str)
+        self.logger.info(string)
 
     def error(self, string: str):
-        self.logger.error(str)
+        self.logger.error(string)
 
     def warning(self, string: str):
-        self.logger.warning(str)
+        self.logger.warning(string)
