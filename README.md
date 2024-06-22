@@ -2,10 +2,12 @@
 
 This project contains a Python script (`dns_sorting.py`) that compares DNS files with LOOM files, sorts DNS entries, and performs other related tasks.
 
+This project uses "dns...." from the dnspython library to parse DNS files.
+
 ## Project Structure
 
 ```bash
-.vscode/ settings.json LOOM/ README.md dns_sorting.py notes.md save/ 10.10.db.save ruddy.db.save
+.vscode/ settings.json LOOM/ README.md main.py notes.md dns_backups/ 10.10.db.dns_backups ruddy.db.dns_backups
 ```
 ## Installation
 
@@ -24,7 +26,7 @@ Before running the script, make sure you have Python installed on your machine. 
 To use the script, you need to have Python installed on your machine. Run the script with the desired DNS file as an argument.
 
 ```bash
-python dns_sorting.py <filename>
+python main.py <filename>
 ```
 
 Replace <filename> with the actual filename you want to use.

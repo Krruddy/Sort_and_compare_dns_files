@@ -1,0 +1,2 @@
+class IdenticalEntries(Exception):
+    pass

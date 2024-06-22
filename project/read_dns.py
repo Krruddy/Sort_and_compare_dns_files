@@ -20,7 +20,7 @@ def remove_lines_with_pattern(file_content, pattern):
 
 
 # Example usage
-file_path = "LOOM/ruddy.db"  # Change this to the path of your file
+file_path = "../LOOM/ruddy.db"  # Change this to the path of your file
 file_content = read_file_content(file_path)
 modified_file_content = remove_lines_with_pattern(file_content, "$TTL")
 zone = dns.zone.from_text(modified_file_content, origin="", relativize=False)
