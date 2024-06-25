@@ -1,9 +1,12 @@
 from project.records.record.AbstractRecord import AbstractRecord
+from project.records.RecordType import RecordType
+
 
 class AbstractRecords:
 
-    def __init__(self):
+    def __init__(self, type_: RecordType):
         self.records = []
+        self.type_ = type_
 
     def add_record(self, record: AbstractRecord):
         self.records += [record]

@@ -3,7 +3,7 @@ import argparse
 
 class ArgumentParser:
     def __init__(self):
-        self.parser = argparse.ArgumentParser(description="A DNS sorter.")
+        self.parser = argparse.ArgumentParser(description="A DNS operation.")
         self.parser.add_argument(
             "-f", "--files",
             nargs='+',

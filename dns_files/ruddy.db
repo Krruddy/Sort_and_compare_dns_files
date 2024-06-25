@@ -17,8 +17,12 @@
 
 
 
+ruddyserv04b. IN      A       192.168.10.40
+ruddyserv04b. IN      A       192.168.10.40
+ruddyserv04b. IN      A       192.168.10.40
 ruddyserv01b. IN      A       192.168.10.10
+ruddyserv04b. IN      A       192.168.10.40
 ruddyserv02b. IN      A       192.168.10.20
 ruddyserv03b. IN      A       192.168.10.30
-www  IN      CNAME       example.fr ; tigs commene
-www. IN      CNAME       example.fr.
+ww.  IN      CNAME       example.fr. ; tigs commene
+www.  IN      CNAME       example.fr.

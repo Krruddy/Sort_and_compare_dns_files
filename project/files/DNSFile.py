@@ -1,6 +1,6 @@
 from project.files.LOOMFile import LOOMFile
 from project.logger.Logger import Logger
-from project.records import DNSRecords
+from project.records.DNSRecords import DNSRecords
 import re
 import os
 import sys
@@ -16,18 +16,17 @@ from project.comments import Comment
 
 from project.logger.CustomFormatter import CustomFormatter
 
-from project.records.record import ARecord
-from project.records.record import CNAMERecord
-from project.records.record import NSRecord
-from project.records.record import PTRRecord
-from project.records.record import SOARecord
+from project.records.record.ARecord import ARecord
+from project.records.record.CNAMERecord import CNAMERecord
+from project.records.record.NSRecord import NSRecord
+from project.records.record.PTRRecord import PTRRecord
+from project.records.record.SOARecord import SOARecord
 
 from project.records.records import ARecords
 from project.records.records import CNAMERecords
 from project.records.records import NSRecords
 from project.records.records import PTRRecords
 from project.records.records import SOARecords
-from project.sorter.Sorter import Sorter
 from pathlib import Path
 
 
@@ -36,61 +35,25 @@ class DNSFile:
     def __init__(self, path: Path):
         self.logger = Logger()
         self.path = path
-        self.is_reverse = self.__find_file_type(self.path)
-        self.file_content = self.__set_file_content(self.path)
-        self.space_before_incre_value = self.__find_space_before_incre_value(self.file_content[2])
-        self.incre_value = self.__find_incre_value(self.file_content[2])
-        self.records = DNSRecords(self.is_reverse)
-        self.__set_list_of_DNS_records(self.file_content)
+        self.__set_lookup_type()
+        self.__set_TTL()
+        self.__set_DNS_records()
+        self.serial = self.records.SOA_records.records[0].serial
         self._LOOM_file = None
-        self.records.show_records()
 
-    # a function named __find_file_type that takes the name of the file and returns the type of file (standard DNS or reverse DNS)
-    def __find_file_type(self, name_of_file: str, rev_pattern=r"\d{1,3}\.db$"):
-        if re.search(rev_pattern, name_of_file) == None:
-            return False
-        else:
-            return True
+    def __set_TTL(self):
+        with open(self.path, "r") as file:
+            for line in file:
+                if "$TTL" in line:
+                    self.TTL = int(line.split()[1])
+                    break
+        # TODO : handle the case where a TTL is not found
 
-    # a function named __set_file_content that takes the name of the file and returns the content of the file in a list
-    def __set_file_content(self, name_of_file: str):
-        file = open(f"{name_of_file}", "r")
-        lines = file.readlines()
-        file.close()
-        return lines
-
-    # a functionn named __find_space_before_incre_value that takes the line containing the value to increment and returns the amount of spaces before the value to increment
-    def __find_space_before_incre_value(self, incre_value_line: str):
-        amount_of_spaces = incre_value_line.count(' ') - 1
-        return amount_of_spaces
-
-    # a function named __find_incre_value that takes the line containing the value to increment and returns the value to increment
-    def __find_incre_value(self, incre_value_line: str):
-        incre_value = re.findall(r'\d+', incre_value_line)
-        if len(incre_value) == 0:
-            self.logger.error(f"Could not find the value to increment in {self.path}.")
-            self.logger.error(f"Exiting the program.")
-            sys.exit(errno.ENOENT)
-        elif len(incre_value) > 1:
-            self.logger.warning(f"Found more than one value to increment in {self.path}.")
-            return int(incre_value[0])
-        else:
-            return int(incre_value[0])
-
-    def remove_lines_with_pattern(self, file_content, pattern):
-        try:
-            lines = file_content
-            filtered_lines = [line for line in lines if pattern not in line]
-            return '\n'.join(filtered_lines)
-        except Exception as e:
-            print(f"An error occurred: {e}")
-            return None
-
-    # a function named __set_list_of_DNS_records that takes self, the file content and returns a list of DNS entries
-    def __set_list_of_DNS_records(self, file_content: list):
-
-        modified_file_content = self.remove_lines_with_pattern(file_content, "$TTL")
-        zone = dns.zone.from_text(modified_file_content, origin="", relativize=False, check_origin=False)
+    def __set_DNS_records(self):
+        self.records = DNSRecords(self.is_forward)
+        # TODO : removing "manually" the lines that contain "$TTL" is more robust
+        file_content = '\n'.join(open(self.path, "r").read().split('\n')[1:])
+        zone = dns.zone.from_text(file_content, origin="", relativize=False, check_origin=False)
 
         for name, node in zone.nodes.items():
             for rdataset in node.rdatasets:
@@ -116,8 +79,11 @@ class DNSFile:
                         self.records.CNAME_records.add_record(current_record)
                     elif rdataset.rdtype == 6:  # SOA
                         current_record = SOARecord(primary_name_server=rdata.mname.to_text(),
-                                                   hostmaster=rdata.rname.to_text(), serial=rdata.serial,
-                                                   refresh=rdata.refresh, retry=rdata.retry, expire=rdata.expire,
+                                                   hostmaster=rdata.rname.to_text(),
+                                                   serial=rdata.serial,
+                                                   refresh=rdata.refresh,
+                                                   retry=rdata.retry,
+                                                   expire=rdata.expire,
                                                    minimum_ttl=rdata.minimum)
                         current_record.show()
                         self.records.SOA_records.add_record(current_record)
@@ -128,37 +94,21 @@ class DNSFile:
                         current_record.show()
                         self.records.PTR_records.add_record(current_record)
 
-    def __seperate_records_and_comments(self, line: str):
-
-        record_and_comment = line.split(";")
-
-        if len(record_and_comment) == 1:
-            record = record_and_comment[0]
-            comment = None
+    def __set_lookup_type(self, rev_pattern=r"(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.db$"):
+        if re.search(rev_pattern, self.path.name):
+            self.is_forward = False
         else:
-            record = record_and_comment[0]
-            comment = Comment(record_and_comment[1].replace("\n", "").strip())
+            self.is_forward = True
 
-        #print comment then print record
-        print(f"comment : {record_and_comment}")
+    def increment_serial(self):
+        self.serial += 1
 
-        return record, comment
-
-    # a function named increment_incre_value that increments the value to increment
-    def increment_incre_value(self):
-        if self.records.SOA_records.number_of_records() > 0:
-            self.records.SOA_records.records[0].increment_serial()
-        else:
-            self.logger.error(f"No SOA record found in {self.path}.")
-            self.logger.error(f"Exiting the program.")
-            sys.exit(errno.ENOENT)
-
-    # a function named delete_duplicate_entries that deletes the duplicate entries
-    def delete_duplicate_entries(self):
+    def remove_duplicates(self):
         self.records.remove_duplicates()
 
-    def sort_DNS_entries(self):
+    def sort(self):
         self.records.sort()
+        self.increment_serial()
 
         # a function named reconstruct_file that reconstructs the file with the new incrementation value and the sorted DNS entries
 
@@ -555,7 +505,7 @@ class DNSFile:
         # Show the the records of the DNS file
         self.records.show_records()
 
-    def beautify_DNS_entries(self):
+    def beautify(self):
         self.records.beautify()
 
     @property

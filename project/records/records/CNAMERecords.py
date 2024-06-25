@@ -1,10 +1,11 @@
+from project.records.RecordType import RecordType
 from project.records.records.AbstractRecords import AbstractRecords
 
 
 class CNAMERecords(AbstractRecords):
 
     def __init__(self):
-        super().__init__()
+        super().__init__(RecordType.CNAME)
 
     def beautify(self):
 

@@ -1,10 +1,10 @@
+from project.records.RecordType import RecordType
 from project.records.records.AbstractRecords import AbstractRecords
 
 
 class ARecords(AbstractRecords):
-
     def __init__(self):
-        super().__init__()
+        super().__init__(RecordType.A)
 
     def beautify(self):
         if len(self.records) != 0:

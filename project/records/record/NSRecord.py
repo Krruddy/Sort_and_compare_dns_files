@@ -1,7 +1,7 @@
 from project.records.record.AbstractRecord import AbstractRecord
 
 
-class NSAbstractRecord(AbstractRecord):
+class NSRecord(AbstractRecord):
 
     def __init__ (self, server_name: str, TTL: int = None, class_: str = "IN", type_: str = "NS", target: str = None, comment = None):
         super().__init__(TTL, class_, type_, comment)
