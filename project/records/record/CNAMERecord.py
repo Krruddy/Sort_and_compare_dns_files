@@ -17,15 +17,6 @@ class CNAMERecord(AbstractRecord):
                     self.target == other.target
             )
 
-    def simple_compare(self, other):
-        if isinstance(other, CNAMERecord):
-            return (self.alias == other.alias
-                    and self.class_ == other.class_
-                    and self.type_ == other.type_
-                    and self.target == other.target)
-        else:
-            raise TypeError("The object must be an instance of the class CNAME_record.")
-
     # Trim every attribute of the class
     def trim(self):
         super().trim()

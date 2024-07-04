@@ -17,15 +17,6 @@ class ARecord(AbstractRecord):
                     self.target == other.target
             )
 
-    def simple_compare(self, other):
-        if isinstance(other, ARecord):
-            return (self.server_name == other.server_name
-                    and self.class_ == other.class_
-                    and self.type_ == other.type_
-                    and self.target == other.target)
-        else:
-            raise TypeError("The object must be an instance of the class A_record.")
-
     # Trim every attribute of the class
     def trim(self):
         super().trim()

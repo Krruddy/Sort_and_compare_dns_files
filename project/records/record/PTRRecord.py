@@ -16,15 +16,6 @@ class PTRRecord(AbstractRecord):
                     self.domain_name == other.domain_name
             )
 
-    def simple_compare(self, other):
-        if isinstance(other, PTRRecord):
-            return (self.ip == other.ip
-                    and self.class_ == other.class_
-                    and self.type_ == other.type_
-                    and self.domain_name == other.domain_name)
-        else:
-            raise TypeError("The object must be an instance of the class PTR_record.")
-
     # Trim every attribute of the class
     def trim(self):
         super().trim()
