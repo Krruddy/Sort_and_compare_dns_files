@@ -23,28 +23,34 @@ class DNSRecords:
 
 
     def show_records(self):
-        for record_type in self.all_records:
-            record_type.show_records()
+        for record_type in RecordType:
+            if record_type in self.all_records:
+                self.all_records[record_type].show_records()
 
     def show_number_of_records(self):
-        for record_type in self.all_records:
-            record_type.show_number_of_records()
+        for record_type in RecordType:
+            if record_type in self.all_records:
+                self.all_records[record_type].show_number_of_records()
 
     def beautify(self):
-        for record_type in self.all_records:
-            record_type.beautify()
+        for record_type in RecordType:
+            if record_type in self.all_records:
+                self.all_records[record_type].beautify()
 
     def remove_duplicates(self):
-        for record_type in self.all_records:
-            record_type.remove_duplicates()
+        for record_type in RecordType:
+            if record_type in self.all_records:
+                self.all_records[record_type].remove_duplicates()
 
     def sort(self):
-        for record_type in self.all_records:
-            record_type.sort()
+        for record_type in RecordType:
+            if record_type in self.all_records:
+                self.all_records[record_type].sort()
 
     def trim(self):
-        for record_type in self.all_records:
-            record_type.trim()
+        for record_type in RecordType:
+            if record_type in self.all_records:
+                self.all_records[record_type].trim()
 
     def output_lines(self):
         lines = []

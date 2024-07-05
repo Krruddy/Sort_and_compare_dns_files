@@ -4,7 +4,7 @@ from project.records.record.AbstractRecord import AbstractRecord
 class PTRRecord(AbstractRecord):
     def __init__ (self, ip: str, TTL: int = None, class_: str = "IN", type_: str = "PTR", domain_name: str = None, comment = None):
         super().__init__(TTL, class_, type_, comment)
-        self.ip = ip
+        self.ip = ip if ip[-1] != '.' else ip[:-1] # Remove the last dot if it exists
         self.domain_name = domain_name
 
     def __eq__(self, other):
