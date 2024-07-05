@@ -38,7 +38,7 @@ if __name__ == "__main__":
     ## Initialize the path to the DNS files and to the LOOM directory
     arg_parser = ArgumentParser()
     args = arg_parser.parse_arguments()
-    files = [Path(file) for file in args.files]
+    files = [Path(file) for file in args.files] # TODO exception if no arguments are passed
 
     sorter = Sorter(files)
     sorter.sort()
