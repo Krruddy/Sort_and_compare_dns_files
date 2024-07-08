@@ -17,6 +17,10 @@ class CNAMERecord(AbstractRecord):
                     self.target == other.target
             )
 
+    def generate_output(self):
+        self.alias = self.alias[:-1] if self.alias[-1] == '.' else self.alias
+        return f"{self.alias}\t{self.class_}\t{self.type_}\t{self.target}"
+
     # Trim every attribute of the class
     def trim(self):
         super().trim()

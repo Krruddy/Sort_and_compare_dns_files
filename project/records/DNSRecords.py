@@ -3,7 +3,7 @@ from project.records.records.ARecords import ARecords
 from project.records.records.CNAMERecords import CNAMERecords
 from project.records.records.NSRecords import NSRecords
 from project.records.records.PTRRecords import PTRRecords
-from project.records.records.SOARecords import SOARecords
+from project.records.record.SOARecord import SOARecord
 
 
 class DNSRecords:
@@ -14,11 +14,12 @@ class DNSRecords:
         self.CNAME_records = CNAMERecords()
         self.NS_records = NSRecords()
         self.PTR_records = PTRRecords()
-        self.SOA_records = SOARecords()
+        self.SOA_record = SOARecord
         self.all_records = {
             RecordType.A: self.A_records,
             RecordType.CNAME: self.CNAME_records,
-            RecordType.PTR: self.PTR_records
+            RecordType.PTR: self.PTR_records,
+            RecordType.NS: self.NS_records
         }
 
 
@@ -31,11 +32,6 @@ class DNSRecords:
         for record_type in RecordType:
             if record_type in self.all_records:
                 self.all_records[record_type].show_number_of_records()
-
-    def beautify(self):
-        for record_type in RecordType:
-            if record_type in self.all_records:
-                self.all_records[record_type].beautify()
 
     def remove_duplicates(self):
         for record_type in RecordType:
@@ -52,10 +48,9 @@ class DNSRecords:
             if record_type in self.all_records:
                 self.all_records[record_type].trim()
 
-    def output_lines(self):
-        lines = []
+    def generate_output(self):
+        output = ""
+        for record_type in self.all_records.values():
+            output += record_type.generate_output() + "\n"
+        return output
 
-        for record_type in self.all_records:
-            lines.extend(record_type.output_lines())
-
-        return lines

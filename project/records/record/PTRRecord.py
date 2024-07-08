@@ -22,6 +22,9 @@ class PTRRecord(AbstractRecord):
         self.ip = self.ip.strip()
         self.domain_name = self.domain_name.strip()
 
+    def generate_output(self):
+        return f"{self.ip}\t{self.class_}\t{self.type_}\t{self.domain_name}"
+
     def show(self):
         super().show()
         print(f"ip : {self.ip}")

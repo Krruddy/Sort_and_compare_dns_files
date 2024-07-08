@@ -34,3 +34,9 @@ class AbstractRecords:
 
     def number_of_records(self):
         return len(self.records)
+
+    def generate_output(self):
+        output = ""
+        for record in self.records:
+            output += record.generate_output() + "\n"
+        return output

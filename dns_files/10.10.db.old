@@ -1,4 +1,4 @@
- $TTL    38400
+$TTL    38400
 @       IN      SOA     ruddyserveurtest01.production.test      operateur\.dns.production.test. (
 2022092948 ;
         1d ;

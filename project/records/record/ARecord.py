@@ -23,6 +23,12 @@ class ARecord(AbstractRecord):
         self.server_name = self.server_name.strip()
         self.target = self.target.strip()
 
+    def generate_output(self):
+        if self.server_name[-1] != ".":
+            return f"{self.server_name}\t{self.class_}\t{self.type_}\t{self.target}"
+        else:
+            return f"{self.server_name[:-1]}\t{self.class_}\t{self.type_}\t{self.target}"
+
     def show(self):
         super().show()
         print(f"server name : {self.server_name}")

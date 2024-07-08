@@ -7,16 +7,6 @@ class CNAMERecords(AbstractRecords):
     def __init__(self):
         super().__init__(RecordType.CNAME)
 
-    def beautify(self):
-
-        if len(self.records) != 0:
-            longest_element = max([len(record.alias) for record in self.records])
-            for record in self.records:
-                added_spaces = longest_element - len(record.alias)+1
-                record.alias += " " * added_spaces
-                record.class_ += " " * 6
-                record.type_ += " " * 7
-
     def remove_duplicates(self):
         seen = set()
         self.records = [x for x in self.records if not (x.alias in seen or seen.add(x.alias))]

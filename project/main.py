@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
 from project.argumentparser.ArgumentParser import ArgumentParser
+from project.files.DNSFile import DNSFile
 from project.logger.CustomFormatter import CustomFormatter
 from project.operation.Sorter import Sorter
 
@@ -40,5 +41,14 @@ if __name__ == "__main__":
     args = arg_parser.parse_arguments()
     files = [Path(file) for file in args.files] # TODO exception if no arguments are passed
 
-    sorter = Sorter(files)
-    sorter.sort()
+    #sorter = Sorter(files)
+    #sorter.sort()
+
+    dns_files = {}
+    for file in files:
+        if file.is_file():
+            dns_files[file.name] = DNSFile(file)
+
+    for dns_file in dns_files.values():
+        dns_file.sort()
+        dns_file.save()

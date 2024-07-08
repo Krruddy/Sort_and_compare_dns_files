@@ -1,28 +1,23 @@
- $TTL    38400
-@       IN      SOA     ruddyserveurtest01.production.test      operateur\.dns.production.test. (
-        2017092736 ;
-        1d ;
-        1h ;
-        4W ;
-        1h ;
+$TTL	38400
+
+@	IN	SOA	ruddyserveurtest01.production.test.	operateur\.dns.production.test. (
+	2017092604 ;
+	86400 ;
+	3600 ;
+	2419200 ;
+	3600 ;
 )
 
-        3600    IN      NS      ruddyserveurtest01.production.test.
-        3600    IN      NS      ruddyserveurtest02.production.test.
+	3600	IN	NS	ruddyserveurtest01.production.test.
+	3600	IN	NS	ruddyserveurtest02.production.test.
 
-
-;This is another comment
-;This is the last comment
-
-
-
-
-ruddyserv04b. IN      A       192.168.10.40
-ruddyserv04b. IN      A       192.168.10.40
-ruddyserv04b. IN      A       192.168.10.40
-ruddyserv01b. IN      A       192.168.10.10
-ruddyserv04b. IN      A       192.168.10.40
-ruddyserv02b. IN      A       192.168.10.20
-ruddyserv03b. IN      A       192.168.10.30
-ww.  IN      CNAME       example.fr. ; tigs commene
-www.  IN      CNAME       example.fr.
+ruddyserv06b	IN	A	192.168.10.1
+ruddyserv02b	IN	A	192.168.10.2
+ruddyserv04b	IN	A	192.168.10.4
+ruddyserv05b	IN	A	192.168.10.5
+ruddyserv010000000b	IN	A	192.168.10.10
+ruddyserv011000000b	IN	A	192.168.10.10
+ruddyserv011100000b	IN	A	192.168.10.10
+ruddyserv002b	IN	CNAME	ruddyserv002b.production.test.
+ruddyserv020000000b	IN	CNAME	ruddyserv020000000b.production.test.
+ruddyserv03b	IN	CNAME	ruddyserv03b.production.test.

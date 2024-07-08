@@ -3,11 +3,11 @@ from project.records.record.AbstractRecord import AbstractRecord
 
 class NSRecord(AbstractRecord):
 
-    def __init__ (self, server_name: str, TTL: int = None, class_: str = "IN", type_: str = "NS", target: str = None, comment = None):
+    def __init__(self, server_name: str, TTL: int = 56746, class_: str = "IN", type_: str = "NS", target: str = None, zone:str = None ,comment=None):
         super().__init__(TTL, class_, type_, comment)
         self.server_name = server_name
         self.target = target
-
+        self.zone = zone
 
     # Trim every attribute of the class
     def trim(self):
@@ -20,10 +20,9 @@ class NSRecord(AbstractRecord):
         print(f"server name : {self.server_name}")
         print(f"target : {self.target}\n")
 
-
     def generate_output(self):
-        if self.comment == None:
-            return f"{self.TTL} {self.class_} {self.type_} {self.server_name}."
+        if self.zone == '.':
+            return f"\t{self.TTL}\t{self.class_}\t{self.type_}\t{self.target}"
         else:
-            return f"{self.TTL} {self.class_} {self.type_} {self.server_name}. ; {self.comment.get()}"
-
+            self.zone = self.zone[:-1] if self.zone[-1] == '.' else self.zone
+            return f"{self.zone}\t{self.class_}\t{self.type_}\t{self.target}"

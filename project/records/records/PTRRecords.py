@@ -22,6 +22,7 @@ class PTRRecords(AbstractRecords):
     def sort(self):
         self.records.sort(key=lambda x: list(map(int, x.ip.split('.'))))
 
+
     def output_lines(self):
         lines = []
         for record in self.records:
