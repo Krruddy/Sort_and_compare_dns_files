@@ -1,25 +1,22 @@
 # DNS Sorting and Comparison Tool
 
-This project contains a Python script (`dns_sorting.py`) that compares DNS files with LOOM files, sorts DNS entries, and performs other related tasks.
+This project is a Python script that reads a DNS file, sorts the entries, and removes duplicates.
 
-This project uses "dns...." from the dnspython library to parse DNS files.
+It uses the following libraries:
 
-## Project Structure
+- os
+- sys
+- ...
 
-```bash
-.vscode/ settings.json LOOM/ README.md main.py notes.md dns_backups/ 10.10.db.dns_backups ruddy.db.dns_backups
-```
 ## Installation
 
-Before running the script, make sure you have Python installed on your machine. If your project has other dependencies, list them here along with instructions on how to install them.
+Before running the script, make sure you have Python installed on your machine. You will find the libraries used in the script in the requirements.txt file and the libraries themselves in libraries. You can install them using `pip install libraries/*`.
 
-## Features
+In order to setup the project module, you can run the following command in the root directory of the project (where `project` is reachable):
 
-- **DNS_file class**: This class represents a DNS file. It provides methods for finding the file type, setting file content, finding and incrementing values, deleting duplicate entries, sorting DNS entries, and reconstructing the file.
-
-- **LOOM_file class**: This class represents a LOOM file. It provides methods for setting file content.
-
-- **Comments class**: This class represents comments in a DNS file. It provides methods for adding, removing, and displaying comments.
+```bash
+export PYTHONPATH="${PYTHONPATH}:$(pwd)/project"
+```
 
 ## Usage
 
@@ -28,11 +25,3 @@ To use the script, you need to have Python installed on your machine. Run the sc
 ```bash
 python main.py <filename>
 ```
-
-Replace <filename> with the actual filename you want to use.
-
-## Contributing
-Contributions are welcome. Please fork the repository and create a pull request with your changes.
-
-## License
-This project is not licensed licensed.

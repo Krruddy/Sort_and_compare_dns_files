@@ -1,24 +1,14 @@
 import logging
+import sys
 from pathlib import Path
 from project.argumentparser.ArgumentParser import ArgumentParser
 from project.files.DNSFile import DNSFile
 from project.logger.CustomFormatter import CustomFormatter
-from project.operation.Sorter import Sorter
+import os
 
-"""
-This program increments the number on line 3, removes the duplicates and sorts based on IP addresses the DNS entries. 
-This program does not delete the old file, it renames it with the extension ".old" and creates a new file with the same name as the old one.
-For the program to work, the following conditions must be met:
-- The file must only contain A records (the other records will be ignored).
-- The number that has to be incremented must be in the third line of the file.
-- The only ip addresses present in the standard DNS file must be part of the DNS entries. 
-- The only ip addresses (with the patern "XXX.XXX") present in the reverse DNS must be part of the DNS entries.
-- The name of the reverse DNS file must look like this "XXX.XXX.db" otherwise the program will consider it as a standard DNS file.
-The second part of this program is going to compare the DNS file provided with the DNS file present in the "LOOM" directory.
-For this part of the program to work, the following conditions must be met:
-- nothing different from the conditions above.
-- If possible no comments in the DNS files.
-"""
+# Setup the directory that contains main.py as the working directory
+os.chdir(os.path.dirname(os.path.realpath(__file__)))
+
 # TODO create an abstract class for LOOMFile and DNSFile
 
 # Create a logger
@@ -39,6 +29,11 @@ if __name__ == "__main__":
     ## Initialize the path to the DNS files and to the LOOM directory
     arg_parser = ArgumentParser()
     args = arg_parser.parse_arguments()
+    if args.files == None:
+        logger.error("No files were passed as arguments. Please pass the files you want to sort.")
+        # print the help message
+        arg_parser.parser.print_help()
+        sys.exit(1)
     files = [Path(file) for file in args.files] # TODO exception if no arguments are passed
 
     #sorter = Sorter(files)
