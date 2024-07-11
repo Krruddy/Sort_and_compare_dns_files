@@ -20,8 +20,7 @@ class PTRRecords(AbstractRecords):
         self.records = [x for x in self.records if not (x.ip in seen or seen.add(x.ip))]
 
     def sort(self):
-        self.records.sort(key=lambda x: list(map(int, x.ip.split('.'))))
-
+        self.records.sort(key=lambda x: list(reversed(list(map(int, x.ip.split('.')))))[:2])
 
     def output_lines(self):
         lines = []

@@ -1,7 +1,7 @@
 $TTL	38400
 
 @	IN	SOA	ruddyserveurtest01.production.test.	operateur\.dns.production.test. (
-	2022092900 ;
+	2022092902 ;
 	86400 ;
 	3600 ;
 	2419200 ;
@@ -18,7 +18,6 @@ $TTL	38400
 1.10	IN	PTR	ruddyserv01b.production.test.
 2.10	IN	PTR	ruddyserv02b.production.test.
 3.10	IN	PTR	ruddyserv03b.production.test.
-7.100	IN	PTR	alainserv99b.production.test.
 10.10	IN	PTR	example1.production.test.
 10.20	IN	PTR	example2.production.test.
 10.30	IN	PTR	example3.production.test.
@@ -27,3 +26,4 @@ $TTL	38400
 10.60	IN	PTR	example6.production.test.
 10.70	IN	PTR	example7.production.test.
 10.80	IN	PTR	example8.production.test.
+7.100	IN	PTR	alainserv99b.production.test.
